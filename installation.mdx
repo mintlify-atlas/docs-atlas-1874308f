@@ -1,0 +1,143 @@
+---
+title: "Installing Unciv"
+description: "Download and install Unciv on Android, Windows, macOS, Linux, and Raspberry Pi."
+---
+
+Unciv is available on Android and all major desktop platforms. Choose your platform below to get started.
+
+<Tabs>
+  <Tab title="Android">
+    <Steps>
+      <Step title="Open your app store">
+        Unciv is available on both Google Play and F-Droid. Choose whichever you prefer.
+      </Step>
+      <Step title="Install Unciv">
+        - **Google Play**: [Install from Google Play](https://play.google.com/store/apps/details?id=com.unciv.app)
+        - **F-Droid**: [Install from F-Droid](https://f-droid.org/en/packages/com.unciv.app/)
+      </Step>
+      <Step title="Launch the game">
+        Open Unciv from your app drawer and follow the in-game tutorial to get started.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Windows">
+    <Steps>
+      <Step title="Choose an installation method">
+        Pick whichever method suits your workflow:
+
+        - **MSI installer** (recommended): [Download Unciv.msi](https://github.com/yairm210/Unciv/releases/latest/download/Unciv.msi)
+        - **itch.io**: [Unciv on itch.io](https://yairm210.itch.io/unciv)
+        - **Chocolatey**: `choco install unciv`
+        - **Scoop** (games bucket): `scoop install unciv` — requires the [scoop-games](https://github.com/Calinou/scoop-games) bucket
+      </Step>
+      <Step title="Run the installer">
+        If you downloaded the MSI, open it and follow the installation prompts. For package managers, the game is installed automatically.
+      </Step>
+      <Step title="Launch Unciv">
+        Find Unciv in your Start menu or wherever your package manager places applications.
+      </Step>
+    </Steps>
+
+    <Note>
+      JAR and standalone builds are also available in [GitHub Releases](https://github.com/yairm210/Unciv/releases), but are not recommended. Unciv updates frequently, and these builds will quickly become out of date. Run a JAR with `java -jar Unciv.jar` if you must use one.
+    </Note>
+  </Tab>
+  <Tab title="macOS">
+    <Steps>
+      <Step title="Choose an installation method">
+        There are several ways to install Unciv on macOS:
+
+        - **Homebrew** (recommended): run the command below
+        - **MacPorts**: run `sudo port install unciv` — does not require a JDK to be pre-installed
+        - **JAR**: see the note below for manual steps
+      </Step>
+      <Step title="Install via Homebrew">
+        If you have [Homebrew](https://brew.sh/) installed, run:
+
+        ```bash
+        brew update && brew install unciv
+        ```
+      </Step>
+      <Step title="Launch Unciv">
+        Once installed, launch Unciv from your Applications folder or via `unciv` in the terminal.
+      </Step>
+    </Steps>
+
+    <Note>
+      **Installing via JAR** requires Java 8 or OpenJDK (versions 11 and 18 also work). If you use Homebrew, run `brew install java`. Then download `Unciv.jar` from [GitHub Releases](https://github.com/yairm210/Unciv/releases) and run it with `java -jar Unciv.jar`. You can create an `Unciv.sh` file containing that command to create shortcuts.
+
+      Unciv does not auto-update when installed this way — you will need to download the latest `Unciv.jar` from GitHub each time you want to update.
+    </Note>
+  </Tab>
+  <Tab title="Linux">
+    <Steps>
+      <Step title="Choose an installation method">
+        Pick the method that fits your distribution:
+
+        - **Flathub** (any distro): [Install from Flathub](https://flathub.org/apps/details/io.github.yairm210.unciv)
+        - **AUR** (Arch Linux): [unciv-bin on AUR](https://aur.archlinux.org/packages/unciv-bin)
+        - **itch.io**: [Unciv on itch.io](https://yairm210.itch.io/unciv)
+      </Step>
+      <Step title="Install via Flatpak">
+        If you're using Flathub, run:
+
+        ```bash
+        flatpak install flathub io.github.yairm210.unciv
+        ```
+      </Step>
+      <Step title="Install via AUR (Arch Linux)">
+        Use your preferred AUR helper, for example:
+
+        ```bash
+        yay -S unciv-bin
+        ```
+      </Step>
+      <Step title="Launch Unciv">
+        Open Unciv from your application launcher, or run `unciv` (or `flatpak run io.github.yairm210.unciv` for Flatpak installs).
+      </Step>
+    </Steps>
+
+    <Note>
+      JAR and standalone builds are also available in [GitHub Releases](https://github.com/yairm210/Unciv/releases), but are not recommended. Unciv updates frequently, and these builds will quickly become out of date. Run a JAR with `java -jar Unciv.jar` if you must use one.
+    </Note>
+  </Tab>
+  <Tab title="Raspberry Pi">
+    <Steps>
+      <Step title="Install Pi-Apps">
+        Unciv is available through [Pi-Apps](https://github.com/Botspot/pi-apps), a GUI app store for Raspberry Pi. Follow the Pi-Apps installation instructions on their GitHub page.
+      </Step>
+      <Step title="Find and install Unciv">
+        Open Pi-Apps, search for **Unciv**, and click **Install**.
+      </Step>
+      <Step title="Launch Unciv">
+        Once installed, launch Unciv from the Pi-Apps menu or your desktop environment's application launcher.
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## Running with Docker
+
+You can run Unciv in a browser via VNC using Docker. This launches a headless desktop environment and exposes the game over a web VNC client.
+
+<CodeGroup>
+
+```bash Docker Compose
+docker compose build && docker compose up
+```
+
+```bash Docker (build locally)
+docker build . -t unciv && docker run -d -p 6901:6901 -p 5901:5901 unciv
+```
+
+```bash Docker (prebuilt image)
+docker run -d -p 6901:6901 -p 5901:5901 ghcr.io/yairm210/unciv
+```
+
+</CodeGroup>
+
+After starting the container, open your browser and navigate to:
+
+```
+http://localhost:6901/vnc.html?password=headless
+```

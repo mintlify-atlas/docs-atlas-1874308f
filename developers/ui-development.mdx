@@ -1,0 +1,106 @@
+---
+title: "UI development"
+description: "Develop and test UI components in Unciv using LibGDX scene2d."
+---
+
+Unciv uses [LibGDX's scene2d](https://libgdx.com/wiki/graphics/2d/scene2d/scene2d) for all UI rendering. The [`Table` class](https://libgdx.com/wiki/graphics/2d/scene2d/table) is the primary layout primitive — it offers flexible grid-based layout for all user interface elements.
+
+## The `FasterUIDevelopment` class
+
+`FasterUIDevelopment` is a small helper LibGDX application for developing UI components faster. It sets up the minimal Unciv environment needed to display a single UI component in isolation, so you can see your changes immediately — without restarting the full game, loading saves, and navigating to the right screen.
+
+### How it works
+
+You provide a *tester* — a class that implements `IFasterUITester` — which returns the `Actor` you want to test, optionally populated with mock content to make it self-contained.
+
+The default way to register a tester is to add an entry to the `FasterUIDevTesters` enum at the top of the `FasterUIDevelopment` source file.
+
+```kotlin
+MyTester {
+    override fun testCreateExample(screen: BaseScreen) = Label("My testing Label!", BaseScreen.skin)
+},
+```
+
+Insert this entry just before the closing `;` of `FasterUIDevTesters`.
+
+<Note>
+  You can keep a tester's setup code in the `core` module, close to the component it tests. To do so, refactor the `IFasterUITester` interface definition into `core`. Do **not** add a dependency from `core` to the `tests` module.
+</Note>
+
+You can disable a tester without removing it by overriding `testGetLabel` to return `null`.
+
+### What you see at runtime
+
+When you launch `FasterUIDevelopment`:
+
+- If more than one tester is enabled, a list of buttons appears so you can choose which component to display. This chooser screen also lets you enable [Scene2D debugging](#the-gdx-scene2d-debug-option).
+- Once a test is selected, your UI element is centered in the window with an orange border (the border actors are named, so they are easy to identify in Scene2D debug mode).
+- If your actor has not sized itself (e.g. a `Table` whose cells have not been `pack()`ed), it is automatically sized to 90% of the stage.
+- Toggle Scene2D debugging at any time with the **middle mouse button**.
+- Press **ESC** to return to the chooser screen.
+
+<Warning>
+  Resizing the window while a test is running is not supported. You can resize on the chooser screen, but no guarantees are given for the results on the test screen.
+</Warning>
+
+### Launching `FasterUIDevelopment`
+
+There are two ways to run it:
+
+<Tabs>
+  <Tab title="From the source file">
+    Open `FasterUIDevelopment.kt` in Android Studio. The line that declares the application class has a small **green arrow** in the left gutter — click it to run directly.
+  </Tab>
+  <Tab title="Run configuration (with debugger support)">
+    Create a run configuration similar to the [Desktop configuration](/developers/building-locally#with-android-studio), but with these values:
+
+    - **Classpath**: `Unciv.tests.test`
+    - **Main class**: `com.unciv.dev.FasterUIDevelopment`
+
+    This approach lets you set breakpoints and run a full debug session against your UI component.
+  </Tab>
+</Tabs>
+
+## The GDX Scene2D debug option
+
+The Scene2D debug overlay can be toggled from:
+
+- The **Debug** page inside Unciv's Options (a secret/hidden page).
+- The **middle mouse button** while a `FasterUIDevelopment` test is running.
+
+When enabled, it activates several UI debug features simultaneously.
+
+### Gdx Actor debug lines
+
+Debug lines are drawn using `setDebugUnderMouse`, `setDebugTableUnderMouse`, and `setDebugParentUnderMouse`. See the [LibGDX Table docs](https://libgdx.com/wiki/graphics/2d/scene2d/table#logical-table) for the full reference.
+
+| Color | Meaning |
+|---|---|
+| Blue | Table bounds — the widget dimensions and logical table area. These coincide when both `expandX` and `expandY` are set. |
+| Red | Cell bounds — the area inside cell padding. |
+| Green | Actor bounds of the cell contents. If the cell has Fill in both directions set, the green lines disappear beneath the red cell bounds (unless a `maxSize` limits the fill). |
+
+### Mouse coordinates and FPS
+
+A semi-transparent panel in the bottom-right corner shows three numbers: **X** and **Y** of the mouse in LibGDX stage coordinates, and **FPS**.
+
+### Actor descriptor
+
+The lower part of the panel shows a string identifying which actor the mouse is over. It looks up the actor's parent and children, and uses the optional `Actor.name` field. The descriptor uses the following conventions:
+
+| Symbol | Meaning |
+|---|---|
+| `:` | Separates class name from `Actor.name`. If `Actor.name` contains the class name, it is shown undecorated. |
+| `"` | Double-quotes wrap actual `Label` or `TextButton` text (max 20 characters). |
+| `.` | Separates parent from hit actor — the parent is added when the actor alone is not descriptive enough. |
+| `(` `)` | Contains a sample from the children (the first descriptive one), shown only when the parent does not add useful recognition. |
+
+### Coordinate scales
+
+Tiny tick marks along all four edges of the screen indicate every 20 units in LibGDX stage coordinates, helping you estimate paddings and sizes.
+
+### Click logging
+
+Click events are logged through the regular logging system with the tag `[StageMouseOverDebug]`. This tag is excluded by default. To see these events, configure your run environment for logging and enable that tag.
+
+Each log line contains: screen coordinates (pixels, Y goes top-down), pointer number, button number, and the descriptor of the hit actor. The hit test is performed with `touchable = true`, which may differ from the mouse-over hit test shown in the panel.

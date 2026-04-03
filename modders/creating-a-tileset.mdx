@@ -1,0 +1,225 @@
+---
+title: "Creating a custom tileset"
+description: "Design and package custom tile graphics for Unciv."
+---
+
+A tileset is a type of mod. To create one, add your images under `Images/Tilesets/<YourTilesetName>/` and enable the mod as a permanent audiovisual mod. Unciv will recognize the tileset and make it available in the options menu.
+
+<Tip>
+Read the [Images and Audio](/modders/images-and-audio) page before proceeding to understand how images and texture atlases work.
+</Tip>
+
+## How tiles are resolved
+
+To understand how a tile like `Grassland+Jungle+Dyes+Trading post` is resolved to images, Unciv uses the following priority order:
+
+<Steps>
+  <Step title="Rule variant">
+    If a matching entry exists in the [tileset config](#tileset-config) `ruleVariants`, use those images in the specified order.
+  </Step>
+  <Step title="Exact combined image">
+    If an image named `Grassland+Jungle+Dyes+Trading post` exists, use it.
+  </Step>
+  <Step title="Partial combined images">
+    Check for a `BaseTerrain+TerrainFeatures` image (e.g. `Grassland+Jungle`) and a `Resource+Improvement` image (e.g. `Dyes+Trading post`). Use whichever exist, falling back to individual images for the rest.
+  </Step>
+</Steps>
+
+The default rendering order for layered images is:
+
+> BaseTerrain → TerrainFeatures → Resource → Improvement
+
+<Tip>
+Use the layered approach (steps 1 and 3) rather than creating a unique image for every tile combination. This reduces file size and makes it easier to support new terrains, improvements, and resources.
+</Tip>
+
+### Era-dependent variants
+
+Any tile image can have era-specific variants. Create images with the suffix `-[era name]`, for example:
+
+- `Trading post-Classical era.png`
+- `Trading post-Industrial era.png`
+
+Unciv uses the most recent era variant that does not exceed the current era.
+
+## Tileset config
+
+The tileset config file controls how Unciv renders tiles. Create a JSON file at `jsons/Tilesets/<YourTilesetName>.json`. You only need to include fields you want to change — all others use defaults.
+
+```json
+{
+  "useColorAsBaseTerrain": "false",
+  "useSummaryImages": "true",
+  "unexploredTileColor": {"r": 1, "g": 1, "b": 1, "a": 1},
+  "fogOfWarColor": {"r": 1, "g": 0, "b": 0, "a": 1},
+  "fallbackTileSet": null,
+  "tileScale": 0.9,
+  "tileScales": {
+    "City center": 1.2,
+    "Citadel": 1.5
+  },
+  "ruleVariants": {
+    "Grassland+Forest": ["Grassland", "ForestForGrassland"],
+    "Grassland+Jungle+Dyes+Trading post": [
+      "Grassland",
+      "JungleForGrasslandBack",
+      "Dyes+Trading post",
+      "JungleForGrasslandFront"
+    ]
+  }
+}
+```
+
+### Config fields
+
+<AccordionGroup>
+  <Accordion title="useColorAsBaseTerrain">
+    **Type:** boolean string (`"true"` or `"false"`) — **Default:** `"false"`
+
+    When `"true"`, an additional Hexagon image is placed below each tile and colored with the corresponding BaseTerrain color. This removes the need for individual BaseTerrain images. This is how the built-in Minimal tileset works.
+  </Accordion>
+
+  <Accordion title="useSummaryImages">
+    **Type:** boolean string (`"true"` or `"false"`) — **Default:** `"false"`
+
+    When `"true"`, summary images are used for specific image groups instead of individual tile images. The summary image must be in the same folder as other tile images.
+
+    | Image group | Summary image name |
+    |---|---|
+    | Natural wonders | `NaturalWonder` |
+  </Accordion>
+
+  <Accordion title="unexploredTileColor">
+    **Type:** normalized RGBA object — **Default:** `{"r": 0.247, "g": 0.247, "b": 0.247, "a": 1}` (DarkGray)
+
+    The color of tiles the player's civilization has never seen.
+  </Accordion>
+
+  <Accordion title="fogOfWarColor">
+    **Type:** normalized RGBA object — **Default:** `{"r": 0, "g": 0, "b": 0, "a": 1}` (Black)
+
+    The color of fog of war. The color is approximated at 60% so the images beneath it remain visible.
+  </Accordion>
+
+  <Accordion title="fallbackTileSet">
+    **Type:** string — **Default:** `"FantasyHex"`
+
+    The name of another tileset to use when this tileset is missing an image. Set to `null` to disable the fallback.
+  </Accordion>
+
+  <Accordion title="tileScale">
+    **Type:** float — **Default:** `1.0`
+
+    A scale multiplier applied to all tiles. Values above 1.0 make tiles larger; values below 1.0 make them smaller. Used by the [5Hex tileset](https://github.com/ravignir/5Hex-Tileset) to simulate shadows.
+  </Accordion>
+
+  <Accordion title="tileScales">
+    **Type:** dictionary (string → float) — **Default:** empty
+
+    Overrides `tileScale` for specific named tiles. Each entry maps a tile name to its scale factor.
+
+    ```json
+    "tileScales": {
+      "City center": 1.2,
+      "Citadel": 1.5
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="ruleVariants">
+    **Type:** dictionary (string → list of strings) — **Default:** empty
+
+    The most powerful part of the tileset config. For a specific tile, defines which images to use and in what order.
+
+    ```json
+    "ruleVariants": {
+      "Grassland+Jungle+Dyes+Trading post": [
+        "Grassland",
+        "JungleForGrasslandBack",
+        "Dyes+Trading post",
+        "JungleForGrasslandFront"
+      ]
+    }
+    ```
+
+    Images are rendered in the order listed. This allows effects like placing jungle behind and in front of other tile features.
+  </Accordion>
+</AccordionGroup>
+
+## Fog and unexplored tiles
+
+Unciv distinguishes two states for tiles a player does not currently see:
+
+- **Unexplored** — never seen. Displays the `UnexploredTile.png` image with `CrosshatchHexagon.png` on top.
+- **Not visible** — seen before but not currently visible. Grayed out, with `CrosshatchHexagon.png` applied.
+
+You can replace `CrosshatchHexagon.png` with a 1×1 pixel transparent image to make the crosshatch effect invisible.
+
+## Unit images
+
+Unit images are resolved in the following order (most specific to least specific):
+
+1. `<unitName>-<styleName>-<eraName>.png` — e.g. `Archer-customStyle1-Classical era.png`
+2. `<unitName>-<eraName>.png` — e.g. `Archer-Classical era.png`
+3. `<unitName>-<styleName>.png` — e.g. `Archer-customStyle1.png`
+4. `<unitName>.png` — e.g. `Archer.png`
+
+The style name comes from the `style` field in `Nations.json`. The era name comes from `Eras.json` (including the word "era").
+
+<Note>
+Era-specific sprites do not need to be provided for every era — only for eras where the sprite changes. If a `Great General-Modern era.png` exists, the game uses the default sprite for all prior eras and the Modern era sprite from that point onward.
+</Note>
+
+### Nation-colored units
+
+Unciv can tint unit images to match the owning civilization's colors. Provide additional image files per unit:
+
+| Image | Description | Tint applied |
+|---|---|---|
+| `Archer.png` | Base image | None |
+| `Archer-1.png` | Color layer | Nation inner color |
+| `Archer-2.png` | Color layer | Nation outer color |
+
+See the [Civ Army Color Style Sheet](https://github.com/AdityaMH/Civ-Army-Color-Style-Sheet) and [5Hex Tileset](https://github.com/ravignir/5Hex-Tileset) mods for practical examples.
+
+## Attack animations
+
+Small animations play on units when they receive damage. Animation frames are named:
+
+```
+<unitType or unitName>-attack-<frameNumber>.png
+```
+
+For example, a 3-frame animation for Sword units uses:
+- `Sword-attack-1.png`
+- `Sword-attack-2.png`
+- `Sword-attack-3.png`
+
+Animations can target unit types (e.g. `Archery`, `Siege`, `Cavalry`) or specific unit names.
+
+## Edge images
+
+Edge images are drawn only when a tile is adjacent to another tile in a specific direction. Place them in:
+
+```
+Images/Tilesets/<YourTilesetName>/Edges/
+```
+
+Name format:
+
+```
+<name>-<originTileFilter>-<destinationTileFilter>-<direction>.png
+```
+
+Valid directions: `Bottom`, `BottomLeft`, `BottomRight`, `Top`, `TopLeft`, `TopRight`
+
+Valid tile filter values:
+- Terrain name
+- Feature name
+- Terrain type: `Land` or `Water`
+
+Example: `Cliff-Hills-Coast-Top.png`
+
+<Note>
+The initial name segment has no effect on which image is used — it is only for grouping files. Only the filter and direction parts determine when the image is shown.
+</Note>

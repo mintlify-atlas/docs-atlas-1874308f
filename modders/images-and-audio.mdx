@@ -1,0 +1,268 @@
+---
+title: "Images and audio"
+description: "Add custom images, sounds, and music to your Unciv mod."
+---
+
+## Images and the texture atlas
+
+Images must be "packed" before the game can use them. This preparation step needs to happen only once — as long as the original graphics are not changed. The result is one or more pairs of files: a texture in PNG format and a corresponding atlas file. If you have a single `Images` folder, the default pair is named `game.png` and `game.atlas`.
+
+For your players, the individual images are not important — only the combined atlas files register with the game, so you must include them in your repository and keep them up to date. We still recommend including the originals so other developers running from source can access them.
+
+<Note>
+If you are developing on Android, you cannot generate packed atlas files directly. Texture packing uses `java.awt`, which is unavailable on Android.
+</Note>
+
+### Ways to pack texture atlases
+
+<AccordionGroup>
+  <Accordion title="Use the desktop version of Unciv">
+    Launch the desktop version with your mod. Your mod's main folder must be a subfolder of the game's `mods` folder, or symlinked there. Unciv will pack the atlas for you on every launch using the methods [documented by libGDX](https://libgdx.com/wiki/tools/texture-packer).
+  </Accordion>
+  <Accordion title="Use an external tool">
+    You can use external tools such as [gdx-texture-packer-gui](https://github.com/crashinvaders/gdx-texture-packer-gui). Take care that the files can be discovered by Unciv and that internal relative paths are correct.
+  </Accordion>
+  <Accordion title="Use a GitHub Actions workflow">
+    Add [a copy of this workflow](https://github.com/ravignir/RekMOD/blob/master/.github/workflows/autoupdate.yml) to your mod at `.github/workflows/autoupdate.yml`. It will automatically pack the atlas on every commit to your repository.
+  </Accordion>
+  <Accordion title="Ask for help">
+    You can ask someone in the Unciv Discord server to pack the atlas for you.
+  </Accordion>
+</AccordionGroup>
+
+### Multiple texture atlases
+
+If your mod has many or large images, textures may spill into additional files. The limit for a single texture is 2048×2048 pixels. You will see `game2.png`, `game3.png`, and so on appear.
+
+To control this, create multiple image folders named `Images.xyz`, where `xyz` becomes the filename of the additional texture (do not use `Images` and `Images.game` together — they will clash). Try to group images by where they are used in the game to minimize texture swaps.
+
+A file named `Atlases.json` (uppercase A) in the mod root controls which atlases are loaded. This file is created automatically by the built-in packer. Only `game.atlas` is loaded by default. If you use external tools with multiple atlases, you must maintain this file yourself — it is a simple JSON array of strings, each a filename without the `.atlas` extension, saved as UTF-8 without BOM.
+
+```json
+["game", "MyMod-Icons", "MyMod-Tiles"]
+```
+
+### Rendering performance
+
+To allow faster icon rendering, copy the `OtherIcons/Circle.png` file from the base game to the corresponding icon folder if your mod provides the majority of icons for that category:
+
+- `ImprovementIcons/Circle.png` for improvements
+- `ResourceIcons/Circle.png` for resources
+- `TechIcons/Circle.png` for technologies
+- `ConstructionIcons/Circle.png` for buildings and units
+- `StatIcons/Circle.png` for stats
+
+<Warning>
+Only do this if your mod's icons will be the **majority** of icons in a given category. Do not add these files if you are only adding a few extra icons.
+</Warning>
+
+Keep icon sizes at 100×100 pixels. Larger icons increase atlas count and can hurt performance.
+
+### Texture packer settings
+
+The built-in texture packer looks for a `TexturePacker.settings` file in each `Images` directory (not under `jsons`). This is a JSON file matching the [libGDX TexturePacker.Settings](https://libgdx.com/wiki/tools/texture-packer#settings) structure. Without this file, some defaults differ from the libGDX defaults. Use the following as a base:
+
+```json
+{
+  "fast": true,
+  "combineSubdirectories": true,
+  "maxWidth": 2048,
+  "maxHeight": 2048,
+  "paddingX": 8,
+  "paddingY": 8,
+  "duplicatePadding": true,
+  "filterMin": "MipMapLinearLinear",
+  "filterMag": "MipMapLinearLinear"
+}
+```
+
+<Tip>
+Change `"filterMag"` to `"Linear"` if your atlas name will end in `Icons`.
+</Tip>
+
+### Atlas encoding
+
+Names and paths mapped in an atlas must use **ASCII only**. Non-ASCII characters can cause the mod to work on some systems but not others depending on locale and encoding settings.
+
+## Supplying graphics
+
+### Naming conventions
+
+New game elements require matching image files. The path and filename must follow this pattern:
+
+```
+Images[.AtlasName]/TypeSpecificFolder/ObjectName.png
+```
+
+For example, `TechIcons` for a Technology, `NationIcons` for a Nation. `ObjectName` is the exact name as defined in JSON, before translation. All path parts are case-sensitive.
+
+Additional fallback rules:
+
+- If `UnitIcons/<UnitName>.png` does not exist, the game falls back to `UnitTypeIcons/<UnitType>.png`.
+- Promotions named `[Unitname] ability` fall back to the unit icon when the promotion icon is missing.
+- Promotions named `Something I`, `Something II`, or `Something III` strip the suffix and display stars; only `UnitPromotionIcons/Something.png` is loaded.
+
+### Override built-in graphics
+
+If a mod supplies an image with the same name and path as a base game image, and the mod is active, the mod's image is used instead. The first folder segment (`Images`, `Images.Tech`, etc.) is not part of the key — only the path after it matters.
+
+For example, to override `Images.Tech/TechIcons/Archery.png`, place your image at `Images/TechIcons/Archery.png`.
+
+<Note>
+Keep the same size and color choices as the original, or the result may be unexpected when the game tints the image.
+</Note>
+
+### Custom fonts
+
+Place `.ttf` font files inside the `/fonts/` directory of your mod. Added fonts appear in **Options → Advanced** as `<fontname> (<modname>)`. All fonts are rendered at 50px and rescaled as needed.
+
+### Overriding special characters
+
+Textures in the `EmojiIcons` subfolder are mapped to specific Unicode codepoints used throughout the game. You can override them with mod-supplied textures. These textures respect aspect ratio and do not need to be square.
+
+| Symbol | Codepoint | Unicode name | Texture path | Optional |
+|:------:|:---------:|:---|:---|:---:|
+| ⛏ | U+26CF | pick | EmojiIcons/Automate | |
+| ♪ | U+266A | eighth note | EmojiIcons/Culture | |
+| ☠ | U+2620 | skull and crossbones | EmojiIcons/Death | |
+| ☮ | U+262E | peace symbol | EmojiIcons/Faith | |
+| ⁂ | U+2042 | asterism | EmojiIcons/Food | |
+| ¤ | U+00A4 | currency sign | EmojiIcons/Gold | |
+| ♬ | U+266C | sixteenth note | EmojiIcons/Great Artist | |
+| ⚒ | U+2692 | hammer | EmojiIcons/Great Engineer | |
+| ⛤ | U+26E4 | pentagram | EmojiIcons/Great General | |
+| ⚖ | U+2696 | scale | EmojiIcons/Great Merchant | |
+| ⚛ | U+269B | atom | EmojiIcons/Great Scientist | |
+| ⌣ | U+2323 | smile | EmojiIcons/Happiness | |
+| ∞ | U+221E | infinity | EmojiIcons/Infinity | * |
+| ⚙ | U+2699 | gear | EmojiIcons/Production | |
+| ⍾ | U+237E | bell symbol | EmojiIcons/Science | |
+| ➡ | U+27A1 | black rightwards arrow | StatIcons/Movement | |
+| … | U+2026 | horizontal ellipsis | StatIcons/Range | |
+| ‡ | U+2021 | double dagger | StatIcons/RangedStrength | |
+| † | U+2020 | dagger | StatIcons/Strength | |
+
+Items marked `*` are optional — they normally come from the system font but can be overridden.
+
+### Wonder splash screens
+
+Add a `.png` image in a 2:1 ratio (for example, 200×100 px) to `/Images/WonderImages/`. Name it exactly as the wonder's `name` field in `Buildings.json`, for example `Stonehenge.png`. A fresh atlas must be generated to include these on mobile.
+
+### Leader portraits
+
+Place portrait images in `/Images/LeaderIcons/`. The filename must match the leader name of a nation as defined in `Nations.json` exactly. Portraits work best as squares between 100×100 and 256×256 pixels, with some transparent border.
+
+The base game does not include leader portraits, but a mod can supply them. See [this example mod](https://github.com/yairm210/Unciv-leader-portrait-mod-example).
+
+### Portraits
+
+The game uses flat icons with colored circle backgrounds by default. A mod can supply "Portraits" — static, uncolored images — by placing files in `/Images/<entityType>Portraits/`. Portraits work best as full-RGB squares between 100×100 and 256×256 pixels.
+
+If a mod supplies `/Images/<entityType>Portraits/Background.png`, it will be used as the background instead of the default circle.
+
+Available portrait types:
+
+- `UnitPortraits`
+- `BuildingPortraits`
+- `TechPortraits`
+- `ResourcePortraits`
+- `ImprovementPortraits`
+- `UnitPromotionPortraits`
+- `UniquePortraits`
+- `NationPortraits`
+- `ReligionPortraits`
+- `UnitActionPortraits`
+
+### Icons for unit types
+
+Supply images named `Images/UnitTypeIcons/<UnitType>.png` to add icons for unit types in Civilopedia. You can also override the category header icon (`UnitTypes.png`) and movement domain icons (`DomainLand`, `DomainWater`, `DomainAir`).
+
+### Icons for beliefs
+
+Supply images named `Images/ReligionIcons/<Belief>.png`. Individual belief icons take precedence over the belief-type icon if they exist.
+
+### Victory illustrations
+
+Add illustrated progress images for victory types. All files go under `Images/VictoryIllustrations/<VictoryName>/`. Files are overlaid on the background in no guaranteed order, so use transparency to avoid parts hiding each other.
+
+| File | Description |
+|---|---|
+| `Background.png` | Determines overall dimensions. **Required** — if missing, no illustrations appear for this victory. |
+| `Won.png` | Shown when you win this victory. Replaces the other images entirely. |
+| `Lost.png` | Shown when a competitor wins this victory. Replaces the other images entirely. |
+| `<milestone>.png` | One image for each milestone without an `[amount]`. Name taken verbatim without square brackets. |
+| `<milestone> <index>.png` | For milestones with an `[amount]`, one image per step starting at index 1. |
+| `<component>.png` | One image for each unique spaceship part. |
+| `<component> <index>.png` | For spaceship parts required multiple times, one image per instance, starting at index 1. |
+
+No JSON configuration is needed. These work as a permanent audiovisual mod.
+
+## Permanent audiovisual mods
+
+A mod is active when it is selected for the current game, or when it is marked as **Permanent audiovisual mod** in the mod manager. In permanent mode, only graphics and audio are applied to all games — rule changes are ignored unless the mod is also selected for a specific game.
+
+<Note>
+Mod authors can control whether the permanent audiovisual checkbox appears using `ModOptions` uniques.
+</Note>
+
+## Sounds
+
+Standard attack sound values are:
+
+> `arrow`, `artillery`, `bombard`, `bombing`, `cannon`, `chimes`, `choir`, `click`, `coin`, `construction`, `elephant`, `fortify`, `gdrAttack`, `horse`, `jetgun`, `machinegun`, `metalhit`, `missile`, `nonmetalhit`, `nuke`, `paper`, `policy`, `promote`, `setup`, `shipguns`, `shot`, `slider`, `swap`, `tankshot`, `throw`, `torpedo`, `upgrade`, `whoosh`
+
+Mods can add new sounds. Any new `attackSound` value must have a corresponding file in the mod's `sounds/` folder in mp3, ogg, or wav format. Names are case-sensitive. Keep files small — Unciv's own sounds use 24 kHz joint stereo 8-bit VBR at around 50–100 kBps.
+
+### Override built-in sounds
+
+Include a file at `sounds/<SoundName>.mp3` (or `.ogg`) to override the corresponding built-in sound. Keep files short and small — a sound larger than 1 MB uncompressed may not play on mobile. Only mp3 and ogg formats are recognized; an existing mp3 can be overridden with an ogg file.
+
+## Music
+
+Sound files (mp3 or ogg) in a mod's `music/` folder are used when the mod is active. Tracks play randomly from all available tracks with a small bias to avoid repeating recent tracks. There is no overriding — a mod track plays in addition to base-game tracks with equal likelihood.
+
+### Context-sensitive music
+
+The music controller plays one track after another with a configurable pause. Various game events trigger a new track selection based on context (prefix and/or suffix matching the filename) and a random factor. Mods should control track usage through careful file naming.
+
+| Description | Prefix | Suffix |
+|---|---|---|
+| Automatic next track | — | Ambient |
+| Launch game | — | Menu |
+| Every 10th turn | Player civ name | Peace or War |
+| New game: Select a mod | Mod name | Theme |
+| New game: Pick a nation | Nation name | Theme or Peace |
+| Diplomacy: Select player | Nation name | Peace or War |
+| First contact | Civ name | Theme or Peace |
+| War declaration | Civ name | War |
+| Civ defeated | Victory/civ name | Defeat |
+| Player wins | Victory/civ name | Victory |
+| Golden Age | Civ name | Golden |
+| Wonder built | Wonder name | Wonder |
+| Tech researched | Tech name | Researched |
+| Map editor: Select nation start | Nation name | Theme |
+
+When a prefix must match and no file matches, the trigger does nothing. When a suffix must match and no file matches, the trigger does nothing.
+
+## Leader voices
+
+Sound files named `<NationName>.<fieldName>.ogg` (or mp3) placed in the mod's `voices/` folder play whenever that nation's message is displayed. The field name matches the corresponding field in `Nations.json`, for example `voices/Zulu.defeated.ogg`.
+
+Leader voice clips are streamed rather than cached, so they may be long. However, they are cut off without fade-out if another voice or city ambient sound needs to play.
+
+<Note>
+City-State leader voices only work for messages a city-state can use: `attacked`, `defeated`, and `introduction`.
+</Note>
+
+## Easter egg images
+
+An audiovisual mod (marked as permanent) can define images named `EasterEggs/<name><index>` where `name` matches one of the following recognized dates:
+
+| | | | |
+|---|---|---|---|
+| AprilFoolsDay | Friday13th | Qingming | UncivBirthday |
+| DiaDeLosMuertos | LunarNewYear | Samhain | Xmas |
+| Diwali | Passover | StarWarsDay | YuleGoat |
+| Easter | PrideDay | TowelDay | |
+
+Images animate across the main menu screen on the corresponding date. Index starts at 1 and counts up. Test using the `-DeasterEgg=name` command-line flag when launching the jar.

@@ -1,0 +1,61 @@
+---
+title: "Creating Scenarios"
+description: "Design and share custom scenarios for Unciv."
+---
+
+Scenarios are specific game states set up so a player has a particular experience. They can range from simply placing cities and units at specific locations, to full custom rulesets built to support them.
+
+When creating a mod, the **ruleset** and the **scenario** are distinct concepts. A scenario is a specific game state — in other words, a saved game.
+
+## Creating a scenario
+
+<Steps>
+  <Step title="Start a new game with a spectator">
+    Create a new game with the players you want, and include a **spectator** among them. The spectator role is what gives you free access to edit the game state.
+  </Step>
+  <Step title="Edit the game state using the console">
+    Enter the game as the spectator and use the developer console to set up the scenario. See the [Console](#console) section below for how to open and use it.
+  </Step>
+  <Step title="Save and copy the file">
+    Save the game. Then copy the save file to a `scenarios/` folder inside your mod directory. The scenario will now be available to anyone who loads your mod.
+  </Step>
+</Steps>
+
+## Console
+
+### Opening the console
+
+To open the console from the world screen:
+
+- **Desktop:** Press the `` ` `` (backtick) key on your keyboard.
+- **Mobile:** Long-press the menu hamburger (three lines), then tap **Developer console**.
+
+To see available commands, press Enter with an empty input. This also works for subcommands — for example, after entering `tile`, press Enter to see tile-related commands.
+
+### Command formatting
+
+Object names (units, buildings, civs, etc.) are case-insensitive.
+
+Unit and building names that contain spaces, like "Great General", can be entered in two ways:
+
+- `"great general"` — with quotation marks
+- `great-general` — with dashes instead of spaces
+
+### Autocomplete
+
+The console supports Tab-based autocomplete for commands and arguments:
+
+- When two or more options match your input, all possibilities are displayed and the longest common substring is entered for you. For example, typing `c` and pressing Tab when both `city` and `civ` are valid commands will complete to `ci`.
+- When the input is empty or ends in a space, pressing Tab displays all available options.
+
+### Other notes
+
+<Note>
+  Some commands operate on a tile or unit you need to select on the map. You can select a tile or unit while the console is open.
+</Note>
+
+<Warning>
+  The console intentionally does not enforce all rules defined by the ruleset — for example, it allows Farms on hills without fresh water, or the Mobility promotion on a Worker. Any unexpected consequences from bypassing the rules are your responsibility.
+</Warning>
+
+You can navigate command history using the Up and Down arrow keys.

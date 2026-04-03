@@ -1,0 +1,623 @@
+---
+title: "Miscellaneous JSON files"
+description: "Reference for miscellaneous mod JSON files: difficulties, eras, mod options, victory types, and more."
+---
+
+<Note>
+  Only attributes marked **Required** must be provided. All others have a default value used when the attribute is omitted.
+</Note>
+
+<AccordionGroup>
+
+<Accordion title="Difficulties.json">
+
+Defines the difficulty levels a player can choose when starting a new game.
+
+<Note>
+  For base ruleset mods, if this file is omitted or contains an empty list, difficulty levels are inherited from the Vanilla ruleset.
+</Note>
+
+<ParamField path="name" type="string" required>
+  Name of the difficulty level.
+</ParamField>
+
+<ParamField path="baseHappiness" type="integer" default="0">
+  Base happiness given to the player at this difficulty.
+</ParamField>
+
+<ParamField path="extraHappinessPerLuxury" type="float" default="0">
+  Additional happiness gained per luxury resource.
+</ParamField>
+
+<ParamField path="researchCostModifier" type="float" default="1">
+  Multiplier applied to technology research costs.
+</ParamField>
+
+<ParamField path="unitCostModifier" type="float" default="1">
+  Multiplier applied to unit production costs.
+</ParamField>
+
+<ParamField path="unitSupplyBase" type="integer" default="5">
+  Base unit supply for human players at this difficulty.
+</ParamField>
+
+<ParamField path="unitSupplyPerCity" type="integer" default="2">
+  Unit supply gained per city for human players.
+</ParamField>
+
+<ParamField path="buildingCostModifier" type="float" default="1">
+  Multiplier applied to building production costs.
+</ParamField>
+
+<ParamField path="policyCostModifier" type="float" default="1">
+  Multiplier applied to culture costs for policies.
+</ParamField>
+
+<ParamField path="unhappinessModifier" type="float" default="1">
+  Multiplier applied to unhappiness for the player.
+</ParamField>
+
+<ParamField path="barbarianBonus" type="float" default="0">
+  Combat bonus applied to barbarian units.
+</ParamField>
+
+<ParamField path="barbarianSpawnDelay" type="integer" default="0">
+  Additional turns added to the barbarian spawn interval.
+</ParamField>
+
+<ParamField path="playerBonusStartingUnits" type="string[]" default="[]">
+  Extra units given to the human player on game start. Use `"Era Starting Unit"` to map to the era's `startingMilitaryUnit`. All other values must exist in `Units.json`. Applies only to human player civs.
+</ParamField>
+
+<ParamField path="aiDifficultyLevel" type="string" default="(first difficulty)">
+  Applies a preset of AI modifiers. If empty, defaults to `"Chieftain"` or the first available difficulty. Stacks multiplicatively with other modifier fields.
+</ParamField>
+
+<ParamField path="aiCityGrowthModifier" type="float" default="1">
+  Multiplier applied to AI city growth rate.
+</ParamField>
+
+<ParamField path="aiUnitCostModifier" type="float" default="1">
+  Multiplier applied to AI unit production costs.
+</ParamField>
+
+<ParamField path="aiBuildingCostModifier" type="float" default="1">
+  Multiplier applied to AI building production costs.
+</ParamField>
+
+<ParamField path="aiWonderCostModifier" type="float" default="1">
+  Multiplier applied to AI wonder production costs.
+</ParamField>
+
+<ParamField path="aiBuildingMaintenanceModifier" type="float" default="1">
+  Multiplier applied to AI building maintenance costs.
+</ParamField>
+
+<ParamField path="aiUnitMaintenanceModifier" type="float" default="1">
+  Multiplier applied to AI unit maintenance costs.
+</ParamField>
+
+<ParamField path="aiUnitSupplyModifier" type="integer" default="5">
+  Additional unit supply for AI civilizations.
+</ParamField>
+
+<ParamField path="aiFreeTechs" type="string[]" default="[]">
+  Technologies given free to AI civilizations at game start. Must exist in `Techs.json`.
+</ParamField>
+
+<ParamField path="aiMajorCivBonusStartingUnits" type="string[]" default="[]">
+  Extra units given to AI major civilizations on game start. Same rules as `playerBonusStartingUnits`. Applies only to AI major civs.
+</ParamField>
+
+<ParamField path="aiCityStateBonusStartingUnits" type="string[]" default="[]">
+  Extra units given to city-state civs on game start. Same rules as `playerBonusStartingUnits`. Applies only to city-state civs.
+</ParamField>
+
+<ParamField path="aiUnhappinessModifier" type="float" default="1">
+  Multiplier applied to AI unhappiness. Stacks multiplicatively with `unhappinessModifier`.
+</ParamField>
+
+<ParamField path="turnBarbariansCanEnterPlayerTiles" type="integer" default="0">
+  The turn number after which barbarians can enter player territory.
+</ParamField>
+
+<ParamField path="clearBarbarianCampReward" type="integer" default="25">
+  Gold reward for clearing a barbarian camp.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  Treated as part of `GlobalUniques` whenever this difficulty level is active.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="Eras.json">
+
+Contains all eras used in your mod.
+
+<ParamField path="name" type="string" required>
+  Name of the era.
+</ParamField>
+
+<ParamField path="researchAgreementCost" type="integer" default="300">
+  Cost of research agreements when the most technologically advanced civ is in this era. Must be ≥ 0.
+</ParamField>
+
+<ParamField path="iconRGB" type="integer[3]" default="[255,255,255]">
+  RGB color for technology icons of this era in the Tech screen.
+</ParamField>
+
+<ParamField path="startingSettlerCount" type="integer" default="1">
+  Number of settler units spawned when starting a game in this era. Setting this to `0` is discouraged — some game modes require at least one settler.
+</ParamField>
+
+<ParamField path="startingSettlerUnit" type="string" default='"Settler"'>
+  Unit used for the starting settler. Must exist in `Units.json`, or a unit with `"Founds a new city"` must exist.
+</ParamField>
+
+<ParamField path="startingWorkerCount" type="integer" default="0">
+  Number of worker units spawned when starting a game in this era.
+</ParamField>
+
+<ParamField path="startingWorkerUnit" type="string" default='"Worker"'>
+  Unit used for the starting worker. If `startingWorkerCount > 0`, must exist in `Units.json`, or a unit with `"Can build [filter] improvements on tiles"` must exist.
+</ParamField>
+
+<ParamField path="startingMilitaryUnitCount" type="integer" default="1">
+  Number of military units spawned when starting a game in this era.
+</ParamField>
+
+<ParamField path="startingMilitaryUnit" type="string" default='"Warrior"'>
+  Unit used for the starting military unit. Must exist in `Units.json`.
+</ParamField>
+
+<ParamField path="startingGold" type="integer" default="0">
+  Gold each civilization receives when starting a game in this era.
+</ParamField>
+
+<ParamField path="startingCulture" type="integer" default="0">
+  Culture each civilization receives when starting a game in this era.
+</ParamField>
+
+<ParamField path="settlerPopulation" type="integer" default="1">
+  Population each newly settled city starts with when starting in this era. Must be > 0.
+</ParamField>
+
+<ParamField path="settlerBuildings" type="string[]" default="[]">
+  Buildings automatically built in every city settled when starting in this era.
+</ParamField>
+
+<ParamField path="startingObsoleteWonders" type="string[]" default="[]">
+  Wonders (and buildings) that cannot be built when starting in this era. Used in the base game to remove wonders more than two eras old.
+</ParamField>
+
+<ParamField path="baseUnitBuyCost" type="integer" default="200">
+  Default gold cost used for the `"Can be purchased with [stat] [cityFilter]"` unique.
+</ParamField>
+
+<ParamField path="embarkDefense" type="integer" default="3">
+  Default defense strength for embarked units in this era.
+</ParamField>
+
+<ParamField path="startPercent" type="integer" default="0">
+  Percentage of turns (0–100) skipped when starting a game in this era, relative to the total turns defined in `Speeds.json`.
+</ParamField>
+
+<ParamField path="citySound" type="string" default='"cityClassical"'>
+  Sound played when a city is founded in this era.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  Treated as part of `GlobalUniques` when starting a game in this era.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="Speeds.json">
+
+Contains all game speeds available in your mod.
+
+<Note>
+  For base ruleset mods, if this file is omitted or contains an empty list, game speeds are inherited from the Vanilla ruleset.
+</Note>
+
+<ParamField path="name" type="string" required>
+  Name of the game speed.
+</ParamField>
+
+<ParamField path="modifier" type="float" default="1.0">
+  Overall game speed multiplier. Must be ≥ 0. Used as the default for all other modifiers if those are not explicitly set.
+</ParamField>
+
+<ParamField path="productionCostModifier" type="float" default="modifier">
+  Scales production cost of units and buildings.
+</ParamField>
+
+<ParamField path="goldCostModifier" type="float" default="modifier">
+  Scales gold costs.
+</ParamField>
+
+<ParamField path="scienceCostModifier" type="float" default="modifier">
+  Scales science (technology research) costs.
+</ParamField>
+
+<ParamField path="cultureCostModifier" type="float" default="modifier">
+  Scales culture (policy) costs.
+</ParamField>
+
+<ParamField path="faithCostModifier" type="float" default="modifier">
+  Scales faith costs.
+</ParamField>
+
+<ParamField path="improvementBuildLengthModifier" type="float" default="modifier">
+  Scales the number of turns workers spend building tile improvements.
+</ParamField>
+
+<ParamField path="barbarianModifier" type="float" default="modifier">
+  Scales the time between barbarian spawns.
+</ParamField>
+
+<ParamField path="goldGiftModifier" type="float" default="modifier">
+  Scales the influence gained from gifting gold to city-states.
+</ParamField>
+
+<ParamField path="cityStateTributeScalingInterval" type="float" default="6.5">
+  Number of turns for the gold amount demanded from city-states to increase by 5 gold.
+</ParamField>
+
+<ParamField path="goldenAgeLengthModifier" type="float" default="modifier">
+  Scales the duration of golden ages.
+</ParamField>
+
+<ParamField path="religiousPressureAdjacentCity" type="integer" default="6">
+  Religious pressure a city exerts on nearby cities each turn.
+</ParamField>
+
+<ParamField path="peaceDealDuration" type="integer" default="10">
+  Number of turns a peace deal lasts.
+</ParamField>
+
+<ParamField path="dealDuration" type="integer" default="30">
+  Number of turns a non-peace deal (research agreement, open borders, etc.) lasts.
+</ParamField>
+
+<ParamField path="startYear" type="float" default="-4000">
+  Start year of the game. Negative values represent BC/BCE.
+</ParamField>
+
+<ParamField path="turns" type="object[]" required>
+  List of time-interval objects defining years per turn. Each entry has:
+
+  - `yearsPerTurn` (integer, required): years passing per turn during this interval.
+  - `untilTurn` (integer, required): the turn at which this interval ends.
+
+  The last `untilTurn` value is ignored for year calculation after that point — the final `yearsPerTurn` continues indefinitely. However, it is used as the reference for `Era.startPercent`.
+
+  ```json
+  "turns": [
+      {"yearsPerTurn": 60, "untilTurn": 50},
+      {"yearsPerTurn": 40, "untilTurn": 80}
+  ]
+  ```
+
+  In this example the first 50 turns last 60 years each, then turn 51 onward lasts 40 years each.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  Treated as part of `GlobalUniques` when this game speed is active.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="ModOptions.json">
+
+A special file that controls mod-wide options and declarative compatibility. It is optional but will be created automatically after a mod is downloaded.
+
+<Note>
+  `ModOptions.json` does not exist in the Vanilla ruleset. It is entirely optional but will be generated when a mod is downloaded. The `constants` sub-object is the only structure **merged field-by-field** across mods rather than overwritten — this allows different mods to change different constants without conflict. In case of conflicts between mods, there is no guarantee which wins, but default values are always overridden.
+</Note>
+
+<ParamField path="isBaseRuleset" type="boolean" default="false">
+  If `true`, this mod replaces the Vanilla ruleset entirely instead of extending it.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  Mod-wide special abilities. See the [Uniques system](/modders/uniques) for the full list of available uniques.
+</ParamField>
+
+<ParamField path="techsToRemove" type="string[]" default="[]">
+  Technologies or technology filters to remove from the ruleset. Only valid when `isBaseRuleset = false`.
+</ParamField>
+
+<ParamField path="buildingsToRemove" type="string[]" default="[]">
+  Buildings/wonders or building filters to remove. Only valid when `isBaseRuleset = false`.
+</ParamField>
+
+<ParamField path="unitsToRemove" type="string[]" default="[]">
+  Units or unit filters to remove. Only valid when `isBaseRuleset = false`.
+</ParamField>
+
+<ParamField path="nationsToRemove" type="string[]" default="[]">
+  Nations or nation filters to remove. Only valid when `isBaseRuleset = false`.
+</ParamField>
+
+<ParamField path="policyBranchesToRemove" type="string[]" default="[]">
+  Policy branches to remove. Only valid when `isBaseRuleset = false`.
+</ParamField>
+
+<ParamField path="policiesToRemove" type="string[]" default="[]">
+  Individual policies to remove. Only valid when `isBaseRuleset = false`.
+</ParamField>
+
+<ParamField path="beliefsToRemove" type="string[]" default="[]">
+  Beliefs to remove. Only valid when `isBaseRuleset = false`.
+</ParamField>
+
+<ParamField path="religionsToRemove" type="string[]" default="[]">
+  Religions to remove. Only valid when `isBaseRuleset = false`.
+</ParamField>
+
+<ParamField path="constants" type="object" default="{}">
+  Collection of game-engine constants. See [ModConstants](#modconstants) below.
+</ParamField>
+
+<ParamField path="tileset" type="string" default="">
+  Default tileset. Only applicable for base rulesets.
+</ParamField>
+
+<ParamField path="unitset" type="string" default="">
+  Default unit set. Only applicable for base rulesets.
+</ParamField>
+
+#### GitHub metadata fields
+
+When a mod is distributed via GitHub these are set automatically and any values in the file are ignored. When distributing **without** a GitHub repository, set these manually:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `modUrl` | String | GitHub page URL, or empty for freely-hosted zips |
+| `defaultBranch` | String | Repo default branch (defaults to `master`) |
+| `author` | String | Repository owner |
+| `lastUpdated` | String | ISO date string |
+| `modSize` | Integer | Size in kB |
+| `topics` | List | GitHub `unciv-mod-*` topics |
+
+### ModConstants
+
+Stored in `ModOptions.constants`. These values are merged field-by-field across mods — only non-default values from a mod are applied.
+
+| Attribute | Type | Default | Notes |
+|-----------|------|---------|-------|
+| `maxXPfromBarbarians` | Integer | 30 | Max XP gainable from barbarian combat |
+| `cityStrengthBase` | Float | 8.0 | Base component of city strength formula |
+| `cityStrengthPerPop` | Float | 0.4 | Population component of city strength |
+| `cityStrengthFromTechsMultiplier` | Float | 5.5 | Tech component multiplier |
+| `cityStrengthFromTechsExponent` | Float | 2.8 | Tech component exponent |
+| `cityStrengthFromTechsFullMultiplier` | Float | 1.0 | Tech component final multiplier |
+| `cityStrengthFromGarrison` | Float | 0.2 | Garrison strength contribution |
+| `baseCityBombardRange` | Integer | 2 | Tile range from which cities can bombard |
+| `cityWorkRange` | Integer | 3 | Max tile distance population can work |
+| `cityExpandRange` | Integer | 5 | Max tile distance borders can expand |
+| `cityAirUnitCapacity` | Integer | 6 | Air units stationable in a city (excluding carried units) |
+| `unitSupplyPerPopulation` | Float | 0.5 | Unit supply per population point across all cities |
+| `minimalCityDistance` | Integer | 3 | Minimum tile gap between cities on the same continent |
+| `minimalCityDistanceOnDifferentContinents` | Integer | 2 | Minimum tile gap on different continents |
+| `unitUpgradeCost` | Object | see below | Sub-structure for upgrade cost formula |
+| `naturalWonderCountMultiplier` | Float | 0.124 | Wonders spawned ≈ radius × this |
+| `naturalWonderCountAddedConstant` | Float | 0.1 | Constant added to wonder count formula |
+| `ancientRuinCountMultiplier` | Float | 0.02 | Ruins = suitable tile count × this |
+| `spawnIceBelowTemperature` | Float | -0.8 | Ice spawns where temperature < this |
+| `maxLakeSize` | Integer | 10 | Water bodies up to this tile count become lakes |
+| `riverCountMultiplier` | Float | 0.01 | River frequency multiplier |
+| `minRiverLength` | Integer | 5 | Minimum river length in tiles |
+| `maxRiverLength` | Integer | 666 | Maximum river length in tiles |
+| `religionLimitBase` | Integer | 1 | Base for max foundable religions formula |
+| `religionLimitMultiplier` | Float | 0.5 | Max religions = base + floor(civCount × this) |
+| `pantheonBase` | Integer | 10 | Base faith cost for founding a pantheon |
+| `pantheonGrowth` | Integer | 5 | Pantheon cost increase per existing religion |
+| `workboatAutomationSearchMaxTiles` | Integer | 20 | Tiles searched by workboat automation |
+| `maxSpyRank` | Integer | 3 | Maximum spy rank |
+| `spyRankSkillPercentBonus` | Float | 30 | Percent skill bonus per spy rank |
+| `minimumWarDuration` | Integer | 10 | Minimum turns before peace can be negotiated |
+| `baseTurnsUntilRevolt` | Integer | 4 | Base turns before a revolt spawns |
+| `cityStateElectionTurns` | Integer | 15 | Turns between city-state elections |
+| `maxImprovementTechErasForward` | Integer | none | Improvement picker hides improvements more than this many eras ahead |
+| `goldGiftMultiplier` | Float | 1 | Multiplier for gold value stored as gifts from one-sided trades |
+| `goldGiftTradeMultiplier` | Float | 0.8 | Multiplier for gold value stored as gifts from two-sided trades |
+| `goldGiftDegradationMultiplier` | Float | 1.0 | Controls how fast the GaveUsGifts diplomacy modifier degrades |
+
+#### UnitUpgradeCost
+
+Nested in `constants.unitUpgradeCost`. The entire sub-structure is replaced when overridden (fields are not individually merged).
+
+| Attribute | Type | Default | Notes |
+|-----------|------|---------|-------|
+| `base` | Float | 10 | Base cost component |
+| `perProduction` | Float | 2 | Cost per point of production difference between old and new unit |
+| `eraMultiplier` | Float | 0 | Era-scaling multiplier |
+| `exponent` | Float | 1 | Exponent applied to the result |
+| `roundTo` | Integer | 5 | Cost is rounded down to a multiple of this |
+
+Formula (rounded down to a multiple of `roundTo`):
+
+```
+(max(base + perProduction × (newUnitCost − oldUnitCost), 0)
+  × (1 + eraNumber × eraMultiplier)
+  × civModifier) ^ exponent
+```
+
+`civModifier` is the product of all applicable `[relativeAmount]% Gold cost of upgrading` uniques.
+
+</Accordion>
+
+<Accordion title="GlobalUniques.json">
+
+Defines uniques that apply globally. In the Vanilla ruleset this is where the effects of Unhappiness are defined.
+
+<Note>
+  For base ruleset mods, if this file is omitted, global uniques are inherited from the Vanilla ruleset. To declare that **no** global uniques exist, include a file with an empty object (`{}`).
+
+  When extension rulesets define `GlobalUniques`, all their uniques are merged into the base. There is currently no way to remove uniques set by a base mod.
+</Note>
+
+<ParamField path="name" type="string" default='"GlobalUniques"'>
+  The name field is not used functionally but must be set. The Ruleset Validator may display it in warnings.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) that apply globally to all civilizations.
+</ParamField>
+
+<ParamField path="unitUniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) that apply to every unit.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="Tutorials.json">
+
+Defines tutorial entries shown to players. A base ruleset mod can add a **welcome page** by defining a tutorial whose `name` matches the mod name.
+
+<Note>
+  Unlike most JSON files in a base ruleset mod, `Tutorials.json` **adds to** the default tutorials rather than replacing them. Place it at `<mod>/jsons/` even though the original file lives one level above the Vanilla jsons.
+
+  If a tutorial popup has an image under `ExtraImages/` with the same name, it is shown in the popup. This lookup is case-sensitive on some platforms. This feature requires Unciv version 4.11.5 or later.
+</Note>
+
+<ParamField path="name" type="string" required>
+  Entry name. Setting this equal to the mod name creates a welcome page for the mod.
+</ParamField>
+
+<ParamField path="category" type="string">
+  Category where this tutorial is displayed. Defaults to `"Tutorials"`.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]">
+  Extra formatted text. Shown before `steps`. See the [Civilopedia text](#civilopedia-text) section.
+</ParamField>
+
+<ParamField path="steps" type="string[]">
+  Plain-text tutorial steps shown in the tutorial popup.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="VictoryTypes.json">
+
+Defines which victories are available in your mod and the milestones required to win each one.
+
+<Note>
+  For base ruleset mods, if this file is omitted or contains an empty list, victory types are inherited from the Vanilla ruleset.
+</Note>
+
+<ParamField path="name" type="string" required>
+  Name of the victory type.
+</ParamField>
+
+<ParamField path="victoryScreenHeader" type="string" default="none">
+  Shown in the "Our Status" footer in the victory screen.
+</ParamField>
+
+<ParamField path="victoryString" type="string" default="none">
+  Shown at the bottom of the victory screen when you win with this victory type.
+</ParamField>
+
+<ParamField path="defeatString" type="string" default="none">
+  Shown at the bottom of the victory screen when someone else wins with this victory type.
+</ParamField>
+
+<ParamField path="hiddenInVictoryScreen" type="boolean" default="false">
+  If `true`, progress for this victory type is hidden from the victory screen.
+</ParamField>
+
+<ParamField path="requiredSpaceshipParts" type="string[]" default="[]">
+  Spaceship parts that must be added to the capital for the corresponding `"Add all [comment] in capital"` milestone.
+</ParamField>
+
+<ParamField path="Milestones" type="string[]" required>
+  Ordered list of milestones that must all be accomplished to win.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](#civilopedia-text) section.
+</ParamField>
+
+#### Supported milestones
+
+| Milestone | Requirement |
+|-----------|-------------|
+| `Build [building]` | Build the named building in any city |
+| `Anyone should build [building]` | Anyone must build the building for all players to have this milestone |
+| `Add all [comment] in capital` | Add all units listed in `requiredSpaceshipParts` to the capital |
+| `Destroy all players` | Be the only major civilization with cities remaining |
+| `Capture all capitals` | Capture all original capitals of major civilizations |
+| `Complete [amount] Policy branches` | Fully complete at least [amount] policy branches |
+| `Win diplomatic vote` | Win a diplomatic (UN) vote at any point in the game |
+| `Become the world religion` | Have your religion be the majority in a majority of all major civs' cities |
+| `Have highest score after max turns` | Time victory — enables max-turn slider and scores when reached |
+| `Have more [countable] than each player's [countable]` | Have your countable exceed every other civilization's countable |
+
+</Accordion>
+
+</AccordionGroup>
+
+---
+
+## Civilopedia text
+
+Any game object defined in JSON and listed in the Civilopedia can supply extra text via a `civilopediaText` field. This can explain special considerations or provide flavour content when auto-generated display is insufficient.
+
+### Example
+
+```json
+"civilopediaText": [
+    { "text": "Ancient ruins provide a one-time random bonus when explored" },
+    { "separator": true },
+    {
+        "text": "This line is red and links to the Scout including icons",
+        "link": "Unit/Scout",
+        "color": "red"
+    },
+    {
+        "text": "A big fat header sporting a golden star",
+        "header": 1,
+        "starred": true,
+        "color": "#ffeb7f"
+    }
+]
+```
+
+### Attributes
+
+Not all combinations are valid.
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `text` | String | Text to display. Supports inline color markup with `«color»` to start and `«»` to stop. |
+| `link` | String | Creates a link and icon. Format: `Category/Name` or an external URL (`http://`, `https://`, `mailto:`). |
+| `icon` | String | Shows an icon without a link. Format: `Category/Name`. |
+| `extraImage` | String | Displays an image instead of text. Can be a texture atlas path or a name from the `ExtraImages` folder. |
+| `imageSize` | Float | Size in world units for `extraImage`. The smaller dimension is calculated to preserve aspect ratio. |
+| `header` | Integer | Header level. `1` is double text size; higher values decrease size from there. |
+| `size` | Integer | Text size. Use `size` or `header` but not both. Default is 18. |
+| `indent` | Integer | Indent level. `0` follows icons; `1` aligns right of all icons; each further step is 30 units. |
+| `padding` | Float | Vertical padding between rows. Default is 5 units. |
+| `color` | String | Text color. Accepts color names or 3/6-digit web hex codes (e.g. `#FFA040`). |
+| `separator` | Boolean | Renders a separator line instead of text. Can only be combined with `color` and `size` (line width, default 2). |
+| `starred` | Boolean | Decorates text with a star icon. The star receives the `color` instead of the text. |
+| `centered` | Boolean | Centers the line and disables automatic wrap. For `extraImage`, crops to content to equalize transparent borders. |
+| `iconCrossed` | Boolean | Paints a red X over the `icon` or `link` image. |
+
+JSON lines surround the auto-generated lines such that the latter are inserted just above the first JSON line carrying a `link`. If no JSON lines have links, they are inserted between the automatic title and the automatic info.
+
+---
+
+## RGB colors list
+
+Colors specified as lists use three integers in the order `[red, green, blue]`, each in the range 0–255.
+
+| Name | Value |
+|------|-------|
+| gold | `[225, 215, 0]` |
+| white | `[255, 255, 255]` |
+| black | `[0, 0, 0]` |

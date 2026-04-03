@@ -1,0 +1,197 @@
+---
+title: "Project structure"
+description: "Understand Unciv's architecture, major classes, and game state model."
+---
+
+Since LibGDX — and therefore Unciv — is built for multi-platform support, the project structure reflects that goal. The vast majority of code is platform-independent and lives in a single shared module.
+
+## Module overview
+
+<CardGroup cols={2}>
+  <Card title="core" icon="code">
+    Contains ~99% of the code. All platform-independent game logic, UI, and state lives here.
+  </Card>
+  <Card title="desktop" icon="monitor">
+    Platform-specific launcher and desktop integration. Also used for development runs.
+  </Card>
+  <Card title="android" icon="mobile">
+    Platform-specific Android launcher. Also contains the game images and assets required at runtime (bundled into the JAR for desktop releases).
+  </Card>
+  <Card title="tests" icon="flask-conical">
+    Unit tests. Run manually with `./gradlew tests:test` or automatically by CI on every push.
+  </Card>
+  <Card title="server" icon="server">
+    Sources for `UncivServer` — the multiplayer host that enables communication between game instances. Packaged as its own separate JAR.
+  </Card>
+</CardGroup>
+
+## Game state hierarchy
+
+Civ — and therefore Unciv — has endless interconnectivity: everything affects everything else. The classes below are presented in the order they are serialized, which provides the clearest mental model.
+
+```
+GameInfo
+├── List<CivilizationInfo>
+│   └── List<CityInfo>
+├── TileMap
+│   └── List<TileInfo>
+│       └── List<MapUnit>
+└── RuleSet  (not serialized — loaded from game files)
+```
+
+Most objects in the state tree carry a transient reference to their parent, so the tree can be traversed in any direction in code.
+
+### `GameInfo` — the game
+
+`GameInfo` is the *state* of the game (what turn it is, who the players are, what each one has) — not the UI. When you save or load a game, you are serializing and deserializing this class.
+
+It contains:
+
+- `List<CivilizationInfo>` — the players/civilizations
+- `TileMap` — the map the game is played on
+- `RuleSet` — the rules (technologies, buildings, units, etc.). **Not serialized** — loaded directly from game files.
+- Game parameters — difficulty, speed, victory conditions, etc.
+
+### `CivilizationInfo` — a civilization
+
+Represents one player in the game — not a nation concept, but a specific player who *is* France in *this* game. A different game has a different France.
+
+Key contents:
+
+- `List<CityInfo>` — cities this civilization controls
+- A reference to a `Nation` (part of the ruleset)
+- Managers for each domain: `PolicyManager`, `GoldenAgeManager`, `GreatPersonManager`, `TechManager`, `VictoryManager`, `DiplomacyManager`
+
+### `CityInfo` — a city
+
+Holds all information about a specific city.
+
+Key contents:
+
+- `CityStats` — calculates the yield of the city
+- Managers: `PopulationManager`, `CityConstructions`, `CityExpansionManager`
+- The tiles controlled and worked by the city (only tile coordinates are stored here; actual tile data lives in `TileInfo` within the `TileMap`)
+
+### `TileMap` — the map
+
+Primarily a collection of helper functions wrapping the list of `TileInfo` objects it contains.
+
+### `TileInfo` — a tile
+
+Each tile is composed of several layers:
+
+- **Base terrain** — Grassland, Hills, Desert, etc. (references a `Terrain` in the ruleset)
+- **Terrain feature** (optional) — Forest, Jungle, Oasis, etc. (references a `Terrain`)
+- **Resource** (optional) — Iron, Dye, Wheat, etc. (references a `TileResource`)
+- **Improvement** (optional) — references a `TileImprovement`
+- **Units** — `List<MapUnit>` currently occupying the tile
+
+### `MapUnit` — a unit on the map
+
+`MapUnit` is a specific *instance* of a unit (a Babylonian Spearman at a certain position with X health). `BaseUnit` is the *type* of unit (Spearman).
+
+Main information:
+
+- A name referencing a specific `BaseUnit`
+- Health and movement points
+- Promotion status — `UnitPromotions`
+
+### `RuleSet` — the rules
+
+Everything that makes Civ, Civ — units, buildings, nations, improvements, and more. These remain the same across games, so they are stored in JSON files in Unciv's asset folder (`android/assets/jsons`) and loaded at startup rather than saved per game.
+
+Game state classes reference ruleset objects by name. At runtime the game looks up that name in the `RuleSet` to find the relevant data.
+
+| Ruleset class | Primary reference location |
+|---|---|
+| `Technology` | `CivilizationInfo.TechManager` |
+| `Nations` | `CivilizationInfo` |
+| `Policy` | `CivilizationInfo.PolicyManager` |
+| `Building` | `CityInfo.ConstructionManager` |
+| `BaseUnit` | `MapUnit` |
+| `Promotion` | `MapUnit` |
+| `Terrain` | `TileInfo` |
+| `TileResource` | `TileInfo` |
+| `TileImprovement` | `TileInfo` |
+
+## UI hierarchy
+
+`UncivGame` is the base class from which all UI starts. Changing a screen means changing a value in `UncivGame`; the interesting logic lives in the screens themselves.
+
+```
+UncivGame
+├── MainMenuScreen
+├── NewGameScreen
+│   ├── GameOptionsTable
+│   ├── MapOptionsTable
+│   └── PlayerPickerTable
+├── WorldScreen
+│   ├── TileMapHolder / TileGroup (the map)
+│   ├── WorldScreenTopBar
+│   ├── UnitTable
+│   ├── TileInfoTable
+│   ├── BattleTable
+│   ├── NotificationsScroll
+│   ├── MinimapHolder
+│   └── Next Turn button
+├── CityScreen
+│   ├── CityStats table
+│   ├── ConstructionsTable
+│   └── CityInfoTable
+├── MapEditorScreen
+└── Picker screens
+    ├── TechPickerScreen
+    ├── PolicyPickerScreen
+    ├── ImprovementPickerScreen
+    └── PromotionPickerScreen
+```
+
+### `WorldScreen`
+
+90% of the game is spent on this screen. It is the main hub — all other screens open from it and close back to reveal it.
+
+### `CityScreen`
+
+The second most important screen. Contains the construction queue, buildings list, specialist slots, and stats drilldown.
+
+## NextTurn cloning strategy
+
+Unciv clones the entire `GameInfo` object at the start of each turn rather than mutating state in place. There are two reasons for this.
+
+**Thread safety.** `NextTurn` processing runs in a separate thread so the UI stays responsive. If the renderer and the game logic were reading and writing the same `GameInfo` simultaneously, it would cause data races. Cloning gives the logic thread its own copy to work with. The same isolation also makes autosaving safe: the save serializes the old snapshot while the new turn processes in parallel.
+
+**Multiplayer reproducibility.** Multiplayer works by exchanging a complete serialized game state. If state were mutated in place, receiving a remote state would be impossible to reconcile cleanly. Cloning was introduced specifically for multiplayer support and happened to solve the threading problem at the same time.
+
+## Guiding principles
+
+These principles shape every design decision in the codebase.
+
+<AccordionGroup>
+  <Accordion title="The AI plays to win">
+    In a perfect world, the AI would pass a "Turing test" of gameplay — you would not be able to tell if you're playing against a human or an AI.
+
+    - The AI will choose to attack if your military is weak.
+    - The AI does not ask "what would you offer me for this?" — it evaluates trades on merit.
+
+    There is a fine line between "exploitable" and "no fun." Regular human players might refuse any trade on principle; the AI does not, which leaves it slightly open to exploitation — a deliberate trade-off.
+  </Accordion>
+
+  <Accordion title="Minimal objects, maximum interactions (modding philosophy)">
+    The goal is to minimize the *number* of unique game mechanics while enabling "emergent modding" through combinations.
+
+    - Parameters in uniques are preferred over multiple separate uniques.
+    - Conditions should be Conditionals so they can be applied to all uniques.
+    - Triggered uniques and unique triggers enable all combinations.
+    - Unit action modifiers replace special attributes for specific unit actions.
+  </Accordion>
+
+  <Accordion title="Crash early, crash often">
+    A crash stack trace is halfway to a solution; a game save that reliably reproduces it is 90% there.
+
+    Whenever the game reaches an incorrect state, it should crash immediately so the problem can be fixed as soon as possible. Persisting with incorrect state moves the eventual symptom far from the actual cause, making debugging much harder.
+  </Accordion>
+</AccordionGroup>
+
+## Translations
+
+Unciv is playable in dozens of languages. Whenever you add a new user-visible string in code, evaluate whether it needs translation support. Sometimes no action is needed; sometimes you will add a line to the [translation templates](https://github.com/yairm210/Unciv/blob/master/android/assets/jsons/translations/template.properties), or adapt the string format. See the [Translation generation guide](https://github.com/yairm210/Unciv/blob/master/docs/Translating/Translation-generation.md) for details.

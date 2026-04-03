@@ -1,0 +1,532 @@
+---
+title: "Unique parameters"
+description: "Reference for all parameter types used in Unciv Uniques."
+---
+
+This page describes every parameter type used in Unciv's [Uniques system](/modders/uniques). Each parameter type determines what values are valid for a given placeholder in a unique template.
+
+All parameter values are **case-sensitive**.
+
+## General filter rules
+
+Most filter parameters accept multiple values using the format `{A} {B} {C}`, meaning the object must match **all** of the listed filters:
+
+```
+[{Military} {Water}] units
+[{Wounded} {Armor}] units
+```
+
+No space is allowed between `[` and the first `{`, or between the last `}` and `]`. The space in `} {` is mandatory.
+
+All filters accept `non-[filter]` as a value:
+
+```
+[non-[Wounded]] units
+```
+
+These can be nested and combined, with one exception: an "all" filter cannot contain another "all" filter, even with a `non-` in between.
+
+```
+[{non-[Wounded]} {Armor}] units    ✓ unit is Armor type and at full health
+[non-[{Wounded} {Armor}]] units    ✓ unit is neither wounded nor Armor type
+[{non-[{Wounded} {Armor}]} {Embarked}] units    ✗ WILL FAIL
+```
+
+<Note>
+Complex filters may display poorly in Civilopedia. Consider hiding the unique and adding a plain-text description using the `Comment []` unique separately.
+</Note>
+
+---
+
+## Civ and nation filters
+
+<AccordionGroup>
+  <Accordion title="civFilter">
+    Filters for specific civilizations.
+
+    <ParamField path="civFilter" type="string">
+      Allowed values:
+      - `Human player`
+      - `AI player`
+      - `Friendly`
+      - `Hostile`
+      - `Open Borders`
+      - `Known` — civilizations aware of the relevant civ (includes self)
+      - Any value accepted by [nationFilter](#nationfilter)
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="nationFilter">
+    Filters for specific nations. Also used by `ModOptions.nationsToRemove`.
+
+    <ParamField path="nationFilter" type="string">
+      Allowed values:
+      - `All`, `all`
+      - `City-States`, `City-State`
+      - `Major`
+      - Nation name
+      - A unique a nation has (verbatim, no placeholders)
+    </ParamField>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Unit filters
+
+<AccordionGroup>
+  <Accordion title="baseUnitFilter">
+    Tests a unit as it appears in JSON — no owning civ, no tile, just base properties.
+
+    <ParamField path="baseUnitFilter" type="string">
+      Allowed values:
+      - Unit name
+      - Unit type (e.g. `Melee`, `Ranged`, `WaterSubmarine`)
+      - `Land`, `Water`, `Air`
+      - `land units`, `water units`, `air units`
+      - `non-air` — non-air, non-missile units
+      - `Military`, `military units`
+      - `Civilian`, `civilian units`
+      - `All`, `all`
+      - `Melee`
+      - `Ranged`
+      - `Nuclear Weapon`
+      - `Great Person`
+      - `Embarked`
+      - A [technologyFilter](#technologyfilter) matching the tech this unit requires (e.g. `Modern Era`)
+      - Any exact unique the unit has
+      - Any exact unique the unit type has
+      - Any combination of the above using `{filter1} {filter2}` syntax
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="mapUnitFilter">
+    Tests a unit as placed on the map, including nation, tile, health, and promotions.
+
+    <ParamField path="mapUnitFilter" type="string">
+      Allowed values:
+      - Any value accepted by [baseUnitFilter](#baseunitfilter)
+      - Any [civFilter](#civfilter) matching the owner
+      - Any unique the unit has (including promotion-granted uniques)
+      - Any promotion name, or an exact unique a promotion has
+      - `Wounded`
+      - `Embarked`
+      - `City-State`
+      - `Barbarians`, `Barbarian`
+      - `Non-City`
+      - Any combination of the above
+
+      You can check this in-game using the console: `unit checkfilter <filter>`
+    </ParamField>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Building and city filters
+
+<AccordionGroup>
+  <Accordion title="buildingFilter">
+    Filters for specific buildings.
+
+    <ParamField path="buildingFilter" type="string">
+      Allowed values:
+      - `All`, `all`
+      - `Buildings`, `Building`
+      - `Wonder`, `Wonders`
+      - `National Wonder`, `National`
+      - `World Wonder`, `World` — all wonders that are not national wonders
+      - Building name
+      - The name of the building it replaces (e.g. uniques for Libraries apply to Paper Makers)
+      - A [technologyFilter](#technologyfilter) matching the tech this building requires (e.g. `Modern Era`)
+      - An exact unique the building has (e.g. `spaceship part`)
+      - A stat name (`Culture`, `Gold`, etc.) if the building is stat-related for that stat. A building is stat-related if it:
+        - Provides that stat directly
+        - Provides a percentage bonus for that stat
+        - Provides that stat as a resource bonus
+        - Provides that stat per population
+      - Any combination of the above using `{filter1} {filter2}` syntax
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="cityFilter">
+    Selects the range of cities affected by a unique.
+
+    <ParamField path="cityFilter" type="string">
+      Allowed values:
+      - `in this city`
+      - `in all cities`, `All`, `all`
+      - `in your cities`, `Your`
+      - `in all coastal cities`, `Coastal`
+      - `in capital`, `Capital`
+      - `in all non-occupied cities`, `Non-occupied`
+      - `in all cities with a world wonder`
+      - `in all cities connected to capital`
+      - `in all cities with a garrison`, `Garrisoned`
+      - `in non-enemy foreign cities`
+      - `in enemy cities`, `Enemy`
+      - `in foreign cities`, `Foreign`
+      - `in annexed cities`, `Annexed`
+      - `in puppeted cities`, `Puppeted`
+      - `in resisting cities`, `Resisting`
+      - `in cities being razed`, `Razing`
+      - `in holy cities`, `Holy`
+      - `in City-State cities`
+      - `in cities following this religion`
+      - `in cities following our religion`
+      - `in all cities in which the majority religion is a major religion`
+      - `in all cities in which the majority religion is an enhanced religion`
+      - Any [civFilter](#civfilter)
+
+      You can check this in-game using the console: `city checkfilter <filter>`
+    </ParamField>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Terrain and tile filters
+
+<AccordionGroup>
+  <Accordion title="terrainFilter">
+    Tests the terrain on a single tile.
+
+    <ParamField path="terrainFilter" type="string">
+      Allowed values (specific JSON attributes):
+      - Base terrain name
+      - Terrain feature name
+      - Base terrain unique
+      - Terrain feature unique
+      - Resource name
+      - Natural wonder name
+      - A [nationFilter](#nationfilter) matching the tile owner
+
+      Allowed values (derived tests):
+      - `All`, `all`
+      - `Terrain`
+      - `Water`, `Land`
+      - `Coastal` — at least one direct neighbor is a coast
+      - `River` — adjacent to a river on at least one side
+      - `Open terrain`, `Rough terrain`
+      - `Friendly Land`, `Friendly` — land belonging to you or civs with open borders to you
+      - `Foreign Land`
+      - `Enemy Land`, `Enemy`
+      - `your` — land belonging to you
+      - `Unowned`
+      - `Water resource`, `Strategic resource`, `Luxury resource`, `Bonus resource`, `resource`
+      - `Natural Wonder` — any natural wonder (as opposed to a specific one by name)
+      - `Featureless`
+      - `Fresh Water`
+      - `non-fresh water`
+      - `Impassible`
+
+      <Note>
+      Resource filters depend on whether a viewing civ is known. Water and specific resource tests require a viewing civ and may require the relevant tech to be researched. Test your mod thoroughly.
+      </Note>
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="tileFilter">
+    Tests a tile including its terrain, improvement, and ownership.
+
+    <ParamField path="tileFilter" type="string">
+      Allowed values:
+      - Any [terrainFilter](#terrainfilter) for this tile
+      - Any [improvementFilter](#improvementfilter) for this tile
+      - Any [civFilter](#civfilter) of the civilization owning the tile
+      - `Improvement` or `improved` — tiles with any improvement
+      - `unimproved` — tiles with no improvement
+      - `pillaged` — pillaged tiles
+      - `worked` — tiles worked by a city
+
+      You can check this in-game using the console: `tile checkfilter <filter>`
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="simpleTerrain">
+    Used by NaturalWonderGenerator to place natural wonders.
+
+    <ParamField path="simpleTerrain" type="string">
+      Allowed values:
+      - `Land`
+      - `Water`
+      - `Elevated`
+      - The name of any terrain
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="terrainQuality">
+    Indicates how terrain is evaluated when dividing the world into starting regions.
+
+    <ParamField path="terrainQuality" type="string">
+      Allowed values:
+      - `Undesirable`
+      - `Food`
+      - `Desirable`
+      - `Production`
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="regionType">
+    Used for dividing the world into starting regions.
+
+    <ParamField path="regionType" type="string">
+      Allowed values:
+      - `Hybrid`
+      - The name of any terrain that has one of these uniques:
+        - `A Region is formed with at least [amount]% [simpleTerrain] tiles, with priority [amount]`
+        - `A Region is formed with at least [amount]% [simpleTerrain] tiles and [simpleTerrain] tiles, with priority [amount]`
+    </ParamField>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Improvement, policy, and era filters
+
+<AccordionGroup>
+  <Accordion title="improvementFilter">
+    Filters for specific improvements.
+
+    <ParamField path="improvementFilter" type="string">
+      Allowed values:
+      - Improvement name
+      - An exact unique the improvement has (e.g. `spaceship improvement`)
+      - `Improvement`
+      - `All`, `all`
+      - `Great Improvement`, `Great`
+      - `All Road` — roads and railroads
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="policyFilter">
+    Filters for specific policies.
+
+    <ParamField path="policyFilter" type="string">
+      Allowed values:
+      - `All`, `all`
+      - `[policyBranchName] branch`
+      - Policy name
+      - A unique the policy has (verbatim, no placeholders)
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="eraFilter">
+    Filters for a specific era.
+
+    <ParamField path="eraFilter" type="string">
+      Allowed values:
+      - Era name (e.g. `Modern era`)
+      - `any era`
+      - `Starting Era` — the era in which the game began
+      - `pre-[era]` — any era prior to the given era (e.g. `pre-[Modern era]`)
+      - `post-[era]` — any era after the given era (e.g. `post-[Ancient era]`)
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="technologyFilter">
+    Filters for specific technologies. Currently only implemented for `ModOptions.techsToRemove`.
+
+    <ParamField path="technologyFilter" type="string">
+      Allowed values:
+      - `All`, `all`
+      - An [eraFilter](#erafilter) matching the technology's era
+      - Technology name
+      - A unique a technology has (verbatim, no placeholders)
+    </ParamField>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Religion and population filters
+
+<AccordionGroup>
+  <Accordion title="religionFilter">
+    Filters for specific religions.
+
+    <ParamField path="religionFilter" type="string">
+      Allowed values:
+      - `any`
+      - `major`
+      - `enhanced`
+      - `your`
+      - `foreign`
+      - `enemy`
+      - The name of a religion symbol
+      - The name of a belief
+      - A unique of a belief the religion has
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="populationFilter">
+    Selects a part of a city's population.
+
+    <ParamField path="populationFilter" type="string">
+      Allowed values:
+      - `Population`
+      - `Specialists`
+      - `Unemployed`
+      - `Followers of the Majority Religion`
+      - `Followers of this Religion` — only when this religion is the majority religion
+      - Specialist names
+
+      <Note>
+      `populationFilter` does not support the multi-value `{A} {B}` format.
+      </Note>
+    </ParamField>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Combat filter
+
+<AccordionGroup>
+  <Accordion title="combatantFilter">
+    Filters for combatants — both units and cities.
+
+    <ParamField path="combatantFilter" type="string">
+      Allowed values:
+      - Any [mapUnitFilter](#mapunitfilter) — for unit combatants
+      - `City`, `All`, or any [civFilter](#civfilter) — for city combatants
+
+      Since `mapUnitFilter` includes `civFilter`, civ-based filters apply to both units and cities.
+    </ParamField>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Stats
+
+<AccordionGroup>
+  <Accordion title="stats">
+    A text string representing one or more stat changes.
+
+    <ParamField path="stats" type="string">
+      Each stat change has the format `+{amount} {stat}`, where `stat` is one of:
+
+      `Production`, `Food`, `Gold`, `Science`, `Culture`, `Happiness`, `Faith`
+
+      Multiple stat changes are separated by `, `:
+
+      ```
+      +1 Science
+      +2 Production, +3 Food
+      ```
+    </ParamField>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Resource filters
+
+<AccordionGroup>
+  <Accordion title="resourceFilter">
+    Filters for specific resources.
+
+    <ParamField path="resourceFilter" type="string">
+      Allowed values:
+      - Resource name
+      - `any`
+      - `All`, `all`
+      - Resource type: `Strategic`, `Luxury`, `Bonus`
+      - The stat a resource provides when improved (e.g. `Food`)
+
+      <Note>
+      `resourceFilter` does not support the multi-value `{A} {B}` format.
+      </Note>
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="stockpiledResource">
+    A custom stockpile resource — a global civilization resource similar to Gold or Faith.
+
+    <ParamField path="stockpiledResource" type="string">
+      To use a stockpiled resource:
+      1. Define a `TileResources` entry with the `Stockpiled` unique.
+      2. Reference it by name in other uniques.
+
+      Stockpiled resources can be generated, consumed, and block actions when insufficient.
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="Stockpile">
+    Something that can be added to a civilization.
+
+    <ParamField path="Stockpile" type="string">
+      Allowed values:
+      - A stockpiled resource name
+      - A stat name — for global stats, not city stats
+      - `Stored Food` — for cities
+      - `Golden Age points`
+    </ParamField>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Countable
+
+<AccordionGroup>
+  <Accordion title="countable" defaultOpen={false}>
+    Represents something that can be counted — used in comparisons and for multiplying unique effects.
+
+    <ParamField path="countable" type="string | expression">
+      Allowed values:
+
+      **Constants and game state:**
+      - Any integer (positive or negative), e.g. `123`
+      - `turns` — number of turns played (starts at zero regardless of game speed or start era)
+      - `year` — current year (negative for BC, depends on game speed and start era)
+      - `Cities` — number of cities the relevant civilization owns
+      - `Units` — number of units the relevant civilization owns
+      - `Era number` — zero-based index of the current era in `Eras.json`
+      - `Completed Policy branches`
+
+      **Stats and resources:**
+      - Stat name: `Production`, `Food`, `Gold`, `Science`, `Culture`, `Happiness`, or `Faith` — the stat reserve, not per-turn amount
+      - `[stat or resource] Per Turn` — per-turn income, e.g. `[Culture] Per Turn`
+      - Resource name from `TileResources.json`
+      - `[resourceFilter] resource of [civFilter] Civilizations`
+      - `Speed modifier for [stat]` — game speed modifier for a stat as a percentage (multiplied by 100)
+
+      **Filtered counts:**
+      - `[cityFilter] Cities`
+      - `[mapUnitFilter] Units`
+      - `Carried [mapUnitFilter] units` — units being carried by this unit
+      - `[buildingFilter] Buildings`
+      - `[buildingFilter] Buildings by [civFilter] Civilizations`
+      - `[cityFilter] Cities of [civFilter] Civilizations`
+      - `Adopted [policyFilter] Policies`
+      - `Adopted [policyFilter] Policies by [civFilter] Civilizations`
+      - `Researched [techFilter] Technologies` — repeatable techs like Future Tech are counted once
+      - `Remaining [civFilter] Civilizations`
+      - `Owned [tileFilter] Tiles`
+      - `[tileFilter] Tiles`
+
+      **Expressions:**
+
+      Countables support arbitrary math expressions. Surround other countables in square brackets to embed them:
+
+      ```
+      [[Iron] + 2]
+      ([[Melee] units] + 1) / [Cities]
+      ```
+
+      Supported binary operators: `+`, `-`, `*`, `/`, `%`, `^`
+
+      Supported unary operators: `-` (negation), `√` or `sqrt` (square root), `abs` (absolute value), `floor` (round down), `ceil` (round up)
+
+      Supported functions: `max(a, b, ...)`, `min(a, b, ...)`
+
+      Example:
+
+      ```
+      Only available <when number of [[Iron] + 2] is more than [0]>
+      ```
+    </ParamField>
+  </Accordion>
+</AccordionGroup>

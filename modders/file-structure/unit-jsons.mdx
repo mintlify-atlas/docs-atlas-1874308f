@@ -1,0 +1,198 @@
+---
+title: "Unit JSON files"
+description: "Reference for unit-related JSON files: units, promotions, unit types, and name groups."
+---
+
+<Note>
+  Only attributes marked **Required** must be provided. All others have a default value used when the attribute is omitted.
+</Note>
+
+<AccordionGroup>
+
+<Accordion title="Units.json">
+
+Lists all units — both military and civilian — available in your mod.
+
+<ParamField path="name" type="string" required>
+  Name of the unit.
+</ParamField>
+
+<ParamField path="unitType" type="string" required>
+  The type of the unit. Must exist in `UnitTypes.json`.
+</ParamField>
+
+<ParamField path="cost" type="integer" default="-1">
+  Production required to build this unit. The production value is always treated as positive.
+</ParamField>
+
+<ParamField path="movement" type="integer" default="0">
+  Number of movement points the unit has per turn.
+</ParamField>
+
+<ParamField path="strength" type="integer" default="0">
+  Melee attack and defensive strength. If both `strength` and `rangedStrength` are `0` or omitted, the unit is treated as a civilian.
+</ParamField>
+
+<ParamField path="rangedStrength" type="integer" default="0">
+  Ranged attack strength. If omitted, the unit cannot perform ranged attacks. If used, `strength` must also be set.
+</ParamField>
+
+<ParamField path="religiousStrength" type="integer" default="0">
+  Religious attack and defensive strength.
+</ParamField>
+
+<ParamField path="range" type="integer" default="2">
+  Maximum tile range from which ranged attacks can be performed.
+</ParamField>
+
+<ParamField path="interceptRange" type="integer" default="0">
+  Air units attacking within this range will be intercepted by this unit.
+</ParamField>
+
+<ParamField path="requiredTech" type="string" default="none">
+  Technology required to build this unit. Must exist in `Techs.json`.
+</ParamField>
+
+<ParamField path="obsoleteTech" type="string" default="none">
+  After researching this technology, the unit can no longer be built. Must exist in `Techs.json`.
+</ParamField>
+
+<ParamField path="requiredResource" type="string" default="none">
+  Resource consumed when building this unit. Must exist in `TileResources.json`.
+</ParamField>
+
+<ParamField path="upgradesTo" type="string" default="none">
+  Unit this unit upgrades to when available. Must exist in `Units.json`.
+</ParamField>
+
+<ParamField path="replaces" type="string" default="none">
+  If this unit is nation-unique, the standard unit it replaces. Must exist in `Units.json`.
+</ParamField>
+
+<ParamField path="uniqueTo" type="string" default="none">
+  The nation this unit is unique to. Must exist in `Nations.json`.
+</ParamField>
+
+<ParamField path="hurryCostModifier" type="integer" default="0">
+  When this unit is bought with gold, its price is increased by this many percent.
+</ParamField>
+
+<ParamField path="promotions" type="string[]" default="[]">
+  Promotions the unit automatically receives when built. Each must exist in `UnitPromotions.json`.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) this unit has.
+</ParamField>
+
+<ParamField path="replacementTextForUniques" type="string" default="none">
+  If provided, this text is displayed instead of the list of uniques. Can be used for better formatting.
+</ParamField>
+
+<ParamField path="attackSound" type="string" default="none">
+  Sound played when the unit attacks (if no sound named after the unit exists). See the [Sounds](../images-and-audio#sounds) reference for valid values.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="UnitPromotions.json">
+
+Lists all available unit promotions. Promotions can be earned with XP, granted by unit type, buildings, wonders, or applied automatically at unit creation.
+
+<Note>
+  Promotions ending in ` I`, ` II`, or ` III` (Roman numerals one through three only; IV, V, VI are not supported) are rendered by looking up an icon without the suffix and adding stars. Every other promotion must have its own icon.
+
+  Promotions are preserved when a unit upgrades. Special properties of nation-unique units that should carry over on upgrade (such as Slinger's withdrawal) belong in a promotion rather than the unit's stats or uniques directly.
+</Note>
+
+<ParamField path="name" type="string" required>
+  Name of the promotion. For progressions, use ` I`, ` II`, ` III` suffixes.
+</ParamField>
+
+<ParamField path="prerequisites" type="string[]" default="[]">
+  Promotions that must be obtained before this one can be chosen.
+</ParamField>
+
+<ParamField path="column" type="integer">
+  Determines placement order on the promotion picker screen. Historical name — does not directly control pixel position. Promotions without coordinates are placed last.
+</ParamField>
+
+<ParamField path="row" type="integer">
+  Works in conjunction with `column`. In base mods without any coordinates, prerequisite-free promotions are sorted alphabetically top-to-bottom, and the rest are structured logically. For `"Heal instantly"` it is suggested to use `row=0` to place it at the top.
+</ParamField>
+
+<ParamField path="unitTypes" type="string[]" default="[]">
+  Unit types for which this promotion is applicable, as defined in `UnitTypes.json`. An empty list means the promotion applies to all unit types.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) this promotion grants to units that have it.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+<ParamField path="innerColor" type="integer[]" default="[]">
+  RGB color of the promotion **icon**.
+</ParamField>
+
+<ParamField path="outerColor" type="integer[]" default="[]">
+  RGB color of the promotion icon **background**.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="UnitTypes.json">
+
+Defines the types of units. Type names can be used in unit filters, and each type determines the movement domain: land, water, or air.
+
+<Note>
+  For base ruleset mods, if this file is omitted or contains an empty list, all types from the Vanilla ruleset are automatically added: `Civilian`, `Melee`, `Ranged`, `Scout`, `Mounted`, `Armor`, `Siege`, `WaterCivilian`, `WaterMelee`, `WaterRanged`, `WaterSubmarine`, `WaterAircraftCarrier`, `Fighter`, `Bomber`, `AtomicBomber`, and `Missile`.
+</Note>
+
+<ParamField path="name" type="string" required>
+  Name of the unit type.
+</ParamField>
+
+<ParamField path="movementType" type="enum" required>
+  Domain the unit moves through. Must be one of: `Water`, `Land`, or `Air`.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="none">
+  List of [unique abilities](../uniques) granted to all units of this type.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="UnitNameGroups.json">
+
+Provides lists of names that can be applied to individual units. Once a name is taken, it will not be applied again.
+
+<ParamField path="name" type="string" required>
+  A unique identifier for the name group (e.g. `"Scientist"`).
+</ParamField>
+
+<ParamField path="names" type="string[]" required>
+  A list of names that can be applied to units in this group (e.g. `["Alan Turing", "Marie Curie"]`).
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="none">
+  List of [triggerable uniques](../uniques#triggerable-uniques) applied to the unit when it receives a name from this group.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+</Accordion>
+
+</AccordionGroup>

@@ -1,0 +1,145 @@
+---
+title: "Introduction to Mods"
+description: "Learn how to create, publish, and distribute Unciv mods."
+---
+
+## What are mods?
+
+Mods can add, replace, and remove basic game definitions such as units, nations, buildings, improvements, resources, and terrains. Games loaded with these mods will function according to the mod's definitions.
+
+The game only knows how to recognize existing definitions, so you cannot add entirely new unique abilities to nations, units, or buildings — only work with existing ones.
+
+<Warning>
+  Creating and editing mods from your phone is NOT RECOMMENDED. It is much easier using a desktop device.
+</Warning>
+
+## Types of mods
+
+<CardGroup cols={3}>
+  <Card title="Extension mods" icon="plus">
+    Add new nations, units, buildings, or resources to a base ruleset — either the default ruleset or a base ruleset mod. The easiest type to get started with.
+  </Card>
+  <Card title="Base Ruleset mods" icon="layer-group">
+    Replace the entire existing ruleset — tech tree, units, policies, nations, and more — to give an entirely different experience. These require more work but are the most popular.
+  </Card>
+  <Card title="Ruleset-agnostic mods" icon="image">
+    Contain no ruleset-related JSONs. Audiovisual mods (tilesets, unitsets, UI skins) and map-only mods fall into this category.
+  </Card>
+</CardGroup>
+
+<Note>
+  A minimal Base Ruleset mod template is available at [Unciv-minimal-base-ruleset](https://github.com/yairm210/Unciv-minimal-base-ruleset). Click the green "Use this template" button to start from it.
+</Note>
+
+## Mod names
+
+Mods must conform to GitHub repository naming rules. Keep names simple — use only letters, digits, and dashes (`-`).
+
+Dashes are automatically converted to spaces for display and use within Unciv. Many punctuation or extended Unicode characters might work, but support is not guaranteed for problems that arise from them.
+
+## Mod components
+
+Mods live in a `/mods` directory (on Desktop, next to your `.jar` file). A mod typically has two subfolders:
+
+- **`jsons/`** — files that alter game object data, following the same structure as the [base JSON files](https://github.com/yairm210/Unciv/tree/master/android/assets/jsons)
+- **`Images/`** — image files, following the same structure as the [base image files](https://github.com/yairm210/Unciv/tree/master/android/Images)
+
+To remove objects from the game, create a `ModOptions` file in the `jsons/` subfolder. See the [mod example](https://github.com/yairm210/Unciv-mod-example/blob/master/Removing%20Things/jsons/ModOptions.json) for reference.
+
+**Base Ruleset mods** start from scratch — all original objects are removed and only the mod's objects are used. Enable this by adding `"isBaseRuleset": true` to your `ModOptions.json`.
+
+## Audiovisual components
+
+Mods can override existing graphics or sounds, or add music tracks without changing any rules. Custom tilesets, unitsets, and UI skins are subgroups of audiovisual mods.
+
+<Note>
+  Images must be packed before the game can use them. The desktop version of Unciv can do this for you. Read the [Texture atlas](https://github.com/yairm210/Unciv/blob/master/docs/Modders/Images-and-Audio.md#images-and-the-texture-atlas) documentation before working with images.
+</Note>
+
+## Adding maps to mods
+
+You can add maps to mods so they are available to anyone who downloads it. A mod can also be maps-only if all you want to share is maps.
+
+1. Finish making your map in the Map Editor and save it. It will appear in the `/maps` folder of your game.
+2. Copy it to a `/maps` folder inside your mod directory.
+
+## Adding translations
+
+Just like Unciv itself, mods can be translated into any language that core Unciv supports. See the [Translation generation for modders](https://github.com/yairm210/Unciv/blob/master/docs/Translating/Translation-mods.md) documentation for details.
+
+## Publishing on GitHub
+
+<Steps>
+  <Step title="Create a GitHub repository">
+    Create a new repository on GitHub. Make sure it is public. The `Images/` and `jsons/` folders must be in the root directory of the repo. See the [Unciv-IV-mod](https://github.com/yairm210/Unciv-IV-mod) repo for an example layout.
+  </Step>
+  <Step title="Test downloading your mod">
+    From Unciv's main screen, click **Mods** → **Download mod from URL**, and enter your repository's URL. The game will automatically download and extract your mod.
+  </Step>
+  <Step title="Add the unciv-mod topic">
+    Go to your GitHub repository page, click the gear icon next to **About** (top-right), and add the topic `unciv-mod` under **Topics**. Save changes.
+
+    When a user opens Unciv's Mod Manager, it queries GitHub's list of repos with that topic — your repo will now appear there.
+  </Step>
+  <Step title="Add category topics (optional)">
+    Add one or more of the following topics to mark your mod's category:
+
+    | Topic | Category |
+    |---|---|
+    | `unciv-mod-rulesets` | Base ruleset mods |
+    | `unciv-mod-expansions` | Mods extending vanilla rulesets |
+    | `unciv-mod-graphics` | Mods altering graphics (icons, portraits, tilesets) |
+    | `unciv-mod-audio` | Mods supplying music or modifying sounds |
+    | `unciv-mod-maps` | Mods containing maps |
+    | `unciv-mod-fun` | Mods tweaking mechanics or gameplay aspects |
+    | `unciv-mod-modsofmods` | Mods extending another mod's ruleset |
+
+    Categories appear as annotations on mod buttons in the Mod Manager, and users can filter by them. They are not required for the game to use the content.
+  </Step>
+</Steps>
+
+<Note>
+  To request a new supported category, add a topic starting with `unciv-mod-` to your repository, then either open a pull request to update [ModCategories.json](https://github.com/yairm210/Unciv/blob/master/android/assets/jsons/ModCategories.json) or open an issue asking the Unciv team to add it.
+</Note>
+
+## Loading from non-GitHub sources
+
+The Mod Manager includes a **Download mod from URL** button that accepts zip files from any trusted source. This is useful for mods in development, clients that cannot connect to GitHub (e.g. firewalls, no IPv4 support), or loading mods on mobile devices.
+
+The downloader supports simple HTTP redirections, but does not support hosts that require authentication, pre-set cookies, or JavaScript-based file assembly.
+
+**Requirements for the zip content:**
+
+- The zip should either contain exactly one subfolder with all mod files below it, or have all mod data directly at the top level.
+- The content should include a majority of files or folders Unciv recognizes as part of a mod. Files named `license`, `contribute.md`, `readme.md`, or `credits.md` count as valid content.
+- The final mod name is derived from: the first subfolder name, then the `content-disposition` header, then the last path segment of the URL (in that order of precedence).
+
+## Permanent audiovisual mods
+
+For mods that are primarily visual or audio, you can enable them as **permanent audiovisual mods** through the Mod Management Screen. This makes the images and/or sounds from the mod replace the originals everywhere in the game, and any included music will be available globally.
+
+## Mod location for manual loading
+
+<Warning>
+  Manual loading is clunky and error-prone. Unless you have a specific use case, you should download mods through the Mod Manager instead.
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="Desktop">
+    Place the mod in its own folder inside `/mods`, next to your Unciv `.jar` file.
+  </Accordion>
+  <Accordion title="Android">
+    Copy the mod folder into `Android/data/com.unciv.app/files/mods`. When the app starts, it will be auto-copied into the internal app data directory.
+  </Accordion>
+  <Accordion title="Chromebook">
+    Open **Play files** from the sidebar under **My files**. Click the three vertical dots (top-right) and enable **Show all Play folders** if it is not already checked. Navigate to `Android/data/com.unciv.app/files/mods` and place your mod folder there.
+  </Accordion>
+</AccordionGroup>
+
+## Preview image
+
+Add a `preview.jpg` or `preview.png` file to the root of your mod to display a preview image on the mod's entry in the Mod Management Screen.
+
+## What's next?
+
+Try [making a new civilization](/modders/making-a-civilization) as your first mod to get a feel for the process.

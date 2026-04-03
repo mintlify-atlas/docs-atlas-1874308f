@@ -1,0 +1,57 @@
+---
+title: "Mod Autoupdates"
+description: "Keep your Unciv mods up to date with the autoupdate system."
+---
+
+Unciv contains built-in capabilities for packing images and autoupdating uniques. You can automate these updates by adding a GitHub Actions workflow to your repository.
+
+## Setting up the workflow
+
+<Steps>
+  <Step title="Open the Actions tab">
+    Go to your GitHub repository and click the **Actions** tab.
+  </Step>
+  <Step title="Create a new workflow">
+    Under **Suggested for this repo**, find **Simple workflow** and click **Configure**.
+  </Step>
+  <Step title="Copy the autoupdate workflow">
+    Copy the contents of the [autoupdate.yml](https://github.com/yairm210/Unciv-IV-mod/blob/master/.github/workflows/autoupdate.yml) file ("Copy raw file") into the editor.
+
+    Change the file name at the top to `autoupdate.yml`.
+  </Step>
+  <Step title="Commit the workflow">
+    Click **Commit changes** (the green button, top-right), then confirm with **Commit changes**.
+  </Step>
+</Steps>
+
+## What the workflow does
+
+On every commit, and once per day, the workflow will:
+
+- **Shrink PNGs** — losslessly compress PNG files (pixel data is unchanged, but file size is reduced).
+- **Autoupdate deprecated uniques** — automatically update any uniques in your mod that have been deprecated in a newer version of Unciv.
+
+If there are changes after either of these operations, the workflow creates a pull request to your repository. See [this example PR](https://github.com/yairm210/Unciv-IV-mod/pull/31) for what that looks like. You can choose to accept or reject the PR.
+
+<Note>
+  If the autoupdate result is not 100% correct, you can reach out to the Unciv team to sort it out.
+</Note>
+
+## Fixing permission errors
+
+If you see the following error in your workflow run:
+
+```
+remote: Permission to <...>.git denied to github-actions[bot].
+```
+
+You need to grant the Actions bot write access:
+
+<Steps>
+  <Step title="Open repository settings">
+    Go to **Settings** → **Actions** → **General**.
+  </Step>
+  <Step title="Update workflow permissions">
+    Under **Workflow permissions**, select **Read and write permissions** and enable **Allow GitHub Actions to create and approve pull requests**.
+  </Step>
+</Steps>

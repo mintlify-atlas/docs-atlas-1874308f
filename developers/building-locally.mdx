@@ -1,0 +1,236 @@
+---
+title: "Building locally"
+description: "Set up a local development environment and run Unciv from source."
+---
+
+By the end of this guide, you will have Unciv running locally from code, so you can make changes and test them locally.
+
+<Tabs>
+  <Tab title="With Android Studio">
+    <Steps>
+      <Step title="Install the prerequisites">
+        - Install [Android Studio](https://developer.android.com/studio) — it's free. Be aware that it's a large download.
+        - Install Git. Android Studio has good Git tools built in, so a separate UI client is optional.
+      </Step>
+
+      <Step title="Fork and clone the repository">
+        - Create a [GitHub account](https://github.com/join) if you don't already have one.
+        - [Fork the repo](https://github.com/yairm210/Unciv/fork) — this creates a copy of the code at `https://github.com/<YourUsername>/Unciv`.
+        - In Android Studio: **File → New → Project from Version Control → GitHub**.
+        - Enter your GitHub credentials, select your forked repository, and click **Clone**.
+      </Step>
+
+      <Step title="Complete the initial Gradle sync">
+        Gradle will attempt an initial sync. If this is your first Android Studio install, you may need to accept the Android Build-tools licenses.
+
+        <Warning>
+          A new install may fail with errors like `Unable to find method ''void org.apache.commons.compress.archivers.zip.ZipFile.<init>(java.nio.channels.SeekableByteChannel)''`. If this happens, go to **File → Settings → Languages & Frameworks → Android SDK**:
+
+          1. Under **SDK Platforms**, select **Android 16.0 ("Baklava")**.
+          2. Under **SDK Tools**, enable **Show Package Details** and choose version **35.0.0** under "Android SDK Build-Tools".
+          3. Click **Apply** and restart Android Studio.
+        </Warning>
+
+        Have patience and let the initial Gradle sync finish. Subsequent syncs are faster — watch the status bar or the **Build** tool pane.
+
+        Unciv uses Gradle **8.11.1** and the Android Gradle Plugin **8.9.1** (check via **File → Project Structure → Project**).
+      </Step>
+
+      <Step title="Verify your run configurations">
+        After a successful sync you should have three run configurations in the top bar: **android**, **Desktop**, and **Run unit tests**.
+
+        **If "android" is missing:** your Android SDK setup likely did not set the `ANDROID_HOME` environment variable. Set it, restart Android Studio, and re-sync Gradle (the elephant + arrow button in the top bar).
+
+        **If "Desktop" is missing**, create it manually:
+
+        1. Select **Run → Edit Configurations**.
+        2. Click **+** and choose **Application**.
+        3. Name it `Desktop`.
+        4. Set the module classpath to `Unciv.desktop.main` (use `Unciv.desktop` for Bumblebee or below).
+        5. Set the main class to `com.unciv.app.desktop.DesktopLauncher`.
+        6. Set the working directory to `$ProjectFileDir$/android/assets`.
+
+        <Note>
+          You can add VM options for extra memory or log control: `-Xmx4096m -Xms256m -XX:MaxMetaspaceSize=256m`. Use `-DnoLog=` or `-DonlyLog=` to control console logging. See [Log.kt](https://github.com/yairm210/Unciv/blob/master/core/src/com/unciv/utils/Log.kt) for details.
+
+          If you get a `../../docs/uniques.md (No such file or directory)` error, you forgot to set the working directory.
+        </Note>
+
+        **If "Run unit tests" is missing:** right-click the top-level `tests` folder and choose **Modify Run Configuration**.
+      </Step>
+
+      <Step title="Run the game">
+        Select the **Desktop** configuration and click the green arrow to run, or click the debug button (the green bug icon) to start a debug session.
+      </Step>
+
+      <Step title="Apply recommended settings">
+        - **Settings → Version Control → Commit → Advanced Commit**: turn off **Analyze code**.
+        - **Settings → Version Control → Commit**: turn off **Use non-modal commit interface** to restore the Local Changes and Console tabs in the Git tool pane.
+        - **Settings → Editor → Code Style → Kotlin → Tabs and Indents → Continuation Indent**: set to `4`.
+        - **Settings → Editor → General → On Save**: uncheck **Remove trailing spaces on [...]** to prevent it from removing necessary trailing whitespace in `template.properties` for translation files.
+
+        <Warning>
+          Unchecking "Remove trailing spaces" can create merge conflicts in non-translation code. Before committing non-translation changes, remove those trailing spaces manually. See [Coding standards](/developers/coding-standards) for details.
+        </Warning>
+
+        - Right-click the `android/assets/SaveFiles` folder → **Mark directory as → Excluded**. Do the same for `android/assets/mods` and any other local-only test files. This [disables indexing](https://www.jetbrains.com/help/idea/indexing.html#exclude) for better performance.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Without Android Studio">
+    <Steps>
+      <Step title="Install prerequisites">
+        Ensure you have **JDK 11 or higher** installed. If you get a JDK version error during launch, download the JDK from [Adoptium](https://adoptium.net/temurin/releases/).
+      </Step>
+
+      <Step title="Clone the repository">
+        Fork and clone the repository as described in the With Android Studio tab (GitHub account → fork → clone).
+      </Step>
+
+      <Step title="Run or build">
+        Open a terminal in the Unciv folder and run the appropriate command:
+
+        <CodeGroup>
+
+        ```batch Windows CMD
+        :: Run the game
+        gradlew desktop:run
+
+        :: Build a JAR
+        gradlew desktop:dist
+        ```
+
+        ```bash Linux / macOS / PowerShell
+        # Run the game
+        ./gradlew desktop:run
+
+        # Build a JAR
+        ./gradlew desktop:dist
+        ```
+
+        </CodeGroup>
+
+        <Note>
+          On macOS or Linux, if you get `Permission denied` or `Command not found`, run `chmod +x ./gradlew` first. This is a one-time step.
+        </Note>
+
+        <Note>
+          Gradle may take several minutes to download files on the first run. After building, the output JAR is at `desktop/build/libs/Unciv.jar`.
+        </Note>
+      </Step>
+
+      <Step title="Fix Android SDK errors (if any)">
+        If you get an error that the Android SDK folder was not found, install it:
+
+        ```bash Debian / Ubuntu / Mint
+        sudo apt update && sudo apt install android-sdk
+        ```
+
+        Then set the SDK location in the `local.properties` file:
+
+        ```text local.properties
+        sdk.dir = /path/to/android/sdk
+        ```
+
+        For example: `sdk.dir = /usr/lib/android-sdk`.
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## Unit tests
+
+You can run and debug unit tests locally.
+
+<Tabs>
+  <Tab title="Android Studio">
+    <Steps>
+      <Step title="Add a Gradle run configuration">
+        1. Go to **Run → Edit Configurations**.
+        2. Click **+** and choose **Gradle**.
+        3. Name the config, e.g. `Unit Tests`.
+        4. Under **Gradle Project**, choose `Unciv` from the dropdown.
+        5. Set **Tasks** to `:tests:test`.
+        6. Set **Arguments** to `--tests "com.unciv.*"`.
+        7. Click **OK**.
+      </Step>
+      <Step title="Run the tests">
+        Select the **Unit Tests** configuration and click the green arrow, or start a debug session.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Command line">
+    ```bash
+    ./gradlew tests:test
+    ```
+  </Tab>
+</Tabs>
+
+## Linting with Detekt
+
+Detekt checks for code smells and other linting issues.
+
+<Steps>
+  <Step title="Download Detekt CLI">
+    Download [detekt-cli](https://github.com/detekt/detekt/releases/latest) (the zip file) and unzip it.
+  </Step>
+  <Step title="Run a report">
+    Open a terminal in the Unciv root directory and run one of the following commands.
+
+    <Note>
+      On Windows, replace `detekt-cli` with `detekt-cli.bat`.
+    </Note>
+
+    <CodeGroup>
+
+    ```bash Warnings
+    PATH/TO/DETEKT/detekt-cli --parallel --report html:detekt/reports.html \
+      --config .github/workflows/detekt_config/detekt-warnings.yml
+    ```
+
+    ```bash Errors
+    PATH/TO/DETEKT/detekt-cli --parallel --report html:detekt/reports.html \
+      --config .github/workflows/detekt_config/detekt-errors.yml
+    ```
+
+    </CodeGroup>
+
+    The report is generated at `detekt/reports.html`.
+  </Step>
+</Steps>
+
+## UncivServer (multiplayer host)
+
+The simple multiplayer host included in the sources can be set up to debug or run analogously to the main game.
+
+<Steps>
+  <Step title="Add a run configuration">
+    1. Go to **Run → Edit Configurations**.
+    2. Click **+** and choose **Application**.
+    3. Name it `UncivServer`.
+    4. Set the module to `Unciv.server.main` (use `Unciv.server` for Bumblebee or below).
+    5. Set the main class to `com.unciv.app.server.UncivServer`.
+    6. Set the working directory to `<repo_folder>/android/assets/`.
+    7. Click **OK**.
+  </Step>
+  <Step title="Run the server">
+    Select the **UncivServer** configuration and click the green arrow, or start a debug session.
+  </Step>
+</Steps>
+
+To build a server JAR from the command line:
+
+```bash
+./gradlew server:dist
+```
+
+The output will be at `server/build/libs/UncivServer.jar`.
+
+## Debugging on Android
+
+For testing on a physical Android device or emulator, see the [Testing](/developers/testing) page.
+
+## Next steps
+
+With Unciv running locally, get to know the codebase via the [Project structure](/developers/project-structure) overview.

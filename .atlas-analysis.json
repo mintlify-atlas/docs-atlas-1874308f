@@ -1,23 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "name": "Unciv",
+  "projectType": "general",
+  "projectName": "Unciv",
+  "projectDescription": "An open-source, moddable Android and Desktop remake of Civilization V built with LibGDX.",
   "theme": "almond",
-  "colors": {
-    "primary": "#94cb04",
-    "light": "#545454"
-  },
-  "favicon": "https://media.brand.dev/288cc7c4-5cef-4376-950b-bdf0083eedae.png",
-  "navbar": {
-    "primary": {
-      "type": "github",
-      "href": "https://github.com/yairm210/Unciv"
-    }
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/yairm210/Unciv"
-    }
-  },
+  "primaryColor": "#94cb04",
+  "lightColor": "#545454",
+  "darkColor": null,
   "navigation": {
     "tabs": [
       {
@@ -90,5 +78,24 @@
         ]
       }
     ]
-  }
+  },
+  "keyFeatures": [
+    "Full Civilization V remake with Android and Desktop support",
+    "Rich modding system with extension, base ruleset, and audiovisual mods",
+    "Multiplayer support via self-hosted UncivServer or Dropbox",
+    "Translated into dozens of languages with active community contributions",
+    "Unique system for modding game mechanics without writing code",
+    "Open-source under MPL-2.0 with LibGDX as the game framework",
+    "Docker support for headless/server deployment",
+    "Automated mod discovery via GitHub topics"
+  ],
+  "publicApiSurface": [
+    "UncivServer - multiplayer file server (java -jar UncivServer.jar)",
+    "Mod JSON files: Buildings.json, Units.json, Nations.json, Techs.json, Terrains.json, Policies.json",
+    "Uniques system - text-based game mechanic modifiers with parameters and conditionals",
+    "ModOptions.json - mod configuration including isBaseRuleset flag",
+    "Translation files in android/assets/jsons/translations/",
+    "gradlew desktop:run / desktop:dist - build and run commands",
+    "gradlew server:dist - build UncivServer jar"
+  ]
 }

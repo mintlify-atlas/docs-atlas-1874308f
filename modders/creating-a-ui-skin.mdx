@@ -1,0 +1,263 @@
+---
+title: "Creating a UI skin"
+description: "Customize the Unciv user interface with a custom skin mod."
+---
+
+A UI skin is a type of mod. To create one, add your images under `Images/Skins/<YourSkinName>/` and enable the mod as a permanent audiovisual mod. Unciv will recognize the skin and make it available in the options menu.
+
+<Tip>
+Read the [Images and Audio](/modders/images-and-audio) page before proceeding to understand how images and texture atlases work.
+</Tip>
+
+<Note>
+UI skins do not support custom icons or fonts. Not every UI element can be customized yet.
+</Note>
+
+## Ninepatch images
+
+UI elements need to scale based on window size and resolution. Unciv uses **9-patch** (also written `.9.png` or Ninepatch) images for all skin graphics. A 9-patch image defines stretchable regions using a border of black pixels.
+
+You can create 9-patch images using:
+
+- [Android Studio's Draw 9-patch tool](https://developer.android.com/studio/write/draw9patch)
+- [romannurik's online 9-patch tool](https://romannurik.github.io/AndroidAssetStudio/nine-patches.html)
+- Your preferred image editor if it supports 9-patch export
+
+<Warning>
+Tileable ninepatches and ninepatches with multiple stretch areas are not supported due to libGDX restrictions.
+</Warning>
+
+## Coloring skin images
+
+A skin image can either be:
+
+- **Grayscale** — colored in-game by setting a `tint` in the skin config.
+- **Directly colored** — the image already contains its final color. Set `tint` to white (`{"r":1,"g":1,"b":1,"a":1}`) in the skin config so the game does not alter it.
+
+<Note>
+UI elements with multiple states (e.g. pressed vs. unpressed) cannot have different colors per state when using tint. Setting tint to white also overwrites state-based color changes.
+</Note>
+
+## Basic shapes
+
+Six basic shape images placed in `Images/Skins/<YourSkinName>/` affect many UI elements at once:
+
+- `checkbox`
+- `checkbox-pressed`
+- `rectangleWithOutline`
+- `roundedEdgeRectangle`
+- `select-box`
+- `select-box-pressed`
+
+Replacing these changes the appearance of many UI elements simultaneously without needing to create per-element images.
+
+## Available UI elements
+
+To change a specific UI element, create an image at the path formed by appending its name to its directory inside `Images/Skins/<YourSkinName>/`. For example, to customize `WorldScreen/Notification`, place your image at `Images/Skins/<YourSkinName>/WorldScreen/Notification.png`.
+
+The table below lists all customizable elements:
+
+| Directory | Name | Default shape |
+|---|:---:|:---:|
+| AnimatedMenu/ | Button | roundedEdgeRectangleMid |
+| CityScreen/ | CityPickerTable | roundedEdgeRectangle |
+| CityScreen/CitizenManagementTable/ | AvoidCell | — |
+| CityScreen/CitizenManagementTable/ | FocusCell | — |
+| CityScreen/CitizenManagementTable/ | ResetCell | — |
+| CityScreen/CityConstructionTable/ | AvailableConstructionsTable | — |
+| CityScreen/CityConstructionTable/ | ConstructionsQueueTable | — |
+| CityScreen/CityConstructionTable/ | Header | — |
+| CityScreen/CityConstructionTable/ | PickConstructionButton | — |
+| CityScreen/CityConstructionTable/ | PickConstructionButtonSelected | — |
+| CityScreen/CityConstructionTable/ | QueueEntry | — |
+| CityScreen/CityConstructionTable/ | QueueEntrySelected | — |
+| CityScreen/CityScreenTileTable/ | Background | — |
+| CityScreen/CityScreenTileTable/ | InnerTable | — |
+| CityScreen/CityStatsTable/ | Background | — |
+| CityScreen/CityStatsTable/ | InnerTable | — |
+| CityScreen/ConstructionInfoTable/ | Background | — |
+| CityScreen/ConstructionInfoTable/ | SelectedConstructionTable | — |
+| CivilopediaScreen/ | EntryButton | — |
+| DiplomacyScreen/ | LeftSide | — |
+| DiplomacyScreen/ | RightSide | — |
+| DiplomacyScreen/ | SelectedCiv | — |
+| General/ | AnimatedMenu | roundedEdgeRectangle |
+| General/ | Border | — |
+| General/ | DisabledBox | — |
+| General/ | ExpanderTab | — |
+| General/ | HealthBar | — |
+| General/ | KeyCapturingButton | roundedEdgeRectangleSmall |
+| General/ | TabbedPager | — |
+| General/ | Tooltip | roundedEdgeRectangle |
+| General/Popup/ | Background | — |
+| General/Popup/ | InnerTable | — |
+| LanguagePickerScreen/ | LanguageTable | — |
+| LoadGameScreen/ | BottomTable | — |
+| LoadGameScreen/ | TopTable | — |
+| MainMenuScreen/ | Background | — |
+| MainMenuScreen/ | MenuButton | roundedEdgeRectangle |
+| MainMenuScreen/ | Version | roundedEdgeRectangle |
+| MapEditor/MapEditorToolsDrawer/ | Handle | — |
+| ModManagementOptions/ | ExpanderTab | — |
+| ModManagementScreen/ | BottomTable | — |
+| ModManagementScreen/ | TopTable | — |
+| MultiplayerScreen/ | BottomTable | — |
+| MultiplayerScreen/ | TopTable | — |
+| NewGameScreen/ | BottomTable | — |
+| NewGameScreen/ | GameOptionsTable | — |
+| NewGameScreen/ | MapOptionsTable | — |
+| NewGameScreen/ | PlayerPickerTable | — |
+| NewGameScreen/ | TopTable | — |
+| NewGameScreen/NationTable/ | Background | — |
+| NewGameScreen/NationTable/ | BorderTable | — |
+| NewGameScreen/NationTable/ | RightInnerTable | — |
+| NewGameScreen/NationTable/ | Title | — |
+| NewGameScreen/PlayerPickerTable/ | PlayerTable | — |
+| NotificationScroll/ | OneTimeNotificationColor | `"#fceea8"` |
+| OverviewScreen/DiplomacyOverviewTab/ | CivTable | — |
+| OverviewScreen/NotificationLog/ | HighlightColor1 | `"#f0ead6"` |
+| OverviewScreen/NotificationLog/ | HighlightColor2 | `"#f5c993"` |
+| OverviewScreen/NotificationOverviewTable/ | Notification | roundedEdgeRectangle |
+| OverviewScreen/ReligionOverviewTab/ | BeliefDescription | — |
+| OverviewScreen/TradesOverviewTab/ | OffersTable | — |
+| OverviewScreen/UnitOverviewTab/ | UnitSupplyTable | — |
+| PlayerReadyScreen/ | Background | — |
+| PolicyScreen/ | PolicyBranchAdoptButton | roundedEdgeRectangleSmall |
+| PolicyScreen/ | PolicyBranchAdoptButtonBorder | roundedEdgeRectangleSmall |
+| PolicyScreen/ | PolicyBranchBackground | rectangleWithOutline |
+| PolicyScreen/ | PolicyBranchBackgroundBorder | rectangleWithOutline |
+| PolicyScreen/ | PolicyBranchHeader | rectangleWithOutline |
+| PolicyScreen/ | PolicyBranchHeaderBorder | rectangleWithOutline |
+| PolicyScreen/Colors/ | BranchBGAdopted | `50,45,5` |
+| PolicyScreen/Colors/ | BranchBGCompleted | `255,205,0` |
+| PolicyScreen/Colors/ | BranchBGNotAdopted | `5,45,65` |
+| PolicyScreen/Colors/ | BranchHeaderBG | `47,90,92` |
+| PolicyScreen/Colors/ | BranchLabelAdopted | `150,70,40` |
+| PolicyScreen/Colors/ | BranchLabelNotPickable | `0xffffff7f` |
+| PolicyScreen/Colors/ | BranchLabelPickable | `WHITE` |
+| PolicyScreen/Colors/ | ButtonBGAdopted | `1,17,19` |
+| PolicyScreen/Colors/ | ButtonBGAdoptedSelected | `1,17,19` |
+| PolicyScreen/Colors/ | ButtonBGNotPickable | `20,20,20` |
+| PolicyScreen/Colors/ | ButtonBGNotPickableSelected | `20,20,20` |
+| PolicyScreen/Colors/ | ButtonBGPickable | `32,46,64` |
+| PolicyScreen/Colors/ | ButtonBGPickableSelected | `37,87,82` |
+| PolicyScreen/Colors/ | ButtonIconAdopted | `GOLD` |
+| PolicyScreen/Colors/ | ButtonIconAdoptedSelected | `GOLD` |
+| PolicyScreen/Colors/ | ButtonIconNotPickable | `0xffffff33` |
+| PolicyScreen/Colors/ | ButtonIconNotPickableSelected | `0xffffff33` |
+| PolicyScreen/Colors/ | ButtonIconPickable | `WHITE` |
+| PolicyScreen/Colors/ | ButtonIconPickableSelected | `WHITE` |
+| PromotionScreen/ | PromotionButton | roundedEdgeRectangleMid |
+| PromotionScreen/ | PromotionButtonBorder | roundedEdgeRectangleMidBorder |
+| TechPickerScreen/ | Background | — |
+| TechPickerScreen/ | BottomTable | — |
+| TechPickerScreen/ | CurrentTechColor | `72, 147, 175` |
+| TechPickerScreen/ | QueuedTechColor | `72, 92, 86` |
+| TechPickerScreen/ | ResearchableTechColor | `28, 170, 0` |
+| TechPickerScreen/ | ResearchedFutureTechColor | `127, 50, 0` |
+| TechPickerScreen/ | ResearchedTechColor | `255, 215, 0` |
+| TechPickerScreen/ | TechButtonIconsOutline | roundedEdgeRectangleSmall |
+| VictoryScreen/ | CivGroup | roundedEdgeRectangle |
+| WorldScreen/ | AirUnitTable | — |
+| WorldScreen/ | BattleTable | — |
+| WorldScreen/ | Notification | roundedEdgeRectangle |
+| WorldScreen/ | PickTechButton | roundedEdgeRectangle |
+| WorldScreen/ | TileInfoTable | — |
+| WorldScreen/ | TutorialTaskTable | — |
+| WorldScreen/ | UnitTable | roundedEdgeRectangleMid |
+| WorldScreen/CityButton/ | AirUnitTable | roundedEdgeRectangleSmall |
+| WorldScreen/CityButton/ | AirUnitTableBorder | roundedEdgeRectangleSmall |
+| WorldScreen/CityButton/ | DefenceTable | roundedTopEdgeRectangleSmall |
+| WorldScreen/CityButton/ | DefenceTableBorder | roundedTopEdgeRectangleSmallBorder |
+| WorldScreen/CityButton/ | IconTable | roundedEdgeRectangleMid |
+| WorldScreen/CityButton/ | IconTableBorder | roundedEdgeRectangleMidBorder |
+| WorldScreen/CityButton/ | InfluenceBar | — |
+| WorldScreen/Minimap/ | Background | — |
+| WorldScreen/Minimap/ | Border | — |
+| WorldScreen/NextTurn/ | ProgressBar | — |
+| WorldScreen/NextTurn/ | ProgressColor | `FOREST` |
+| WorldScreen/TopBar/ | LeftAttachment | roundedEdgeRectangle |
+| WorldScreen/TopBar/ | ResourceTable | — |
+| WorldScreen/TopBar/ | RightAttachment | roundedEdgeRectangle |
+| WorldScreen/TopBar/ | StatsTable | — |
+| WorldScreenMusicPopup/TrackList/ | Down | — |
+| WorldScreenMusicPopup/TrackList/ | Over | — |
+| WorldScreenMusicPopup/TrackList/ | Up | — |
+
+## Skin config
+
+Create a config file at `jsons/Skins/<YourSkinName>.json` to define colors, shapes, and per-element overrides. You only need to include fields you want to change.
+
+```json
+{
+  "baseColor": {"r": 1, "g": 0, "b": 0, "a": 1},
+  "defaultVariantTint": {"r": 1, "g": 1, "b": 1, "a": 1},
+  "skinVariants": {
+    "MainMenuScreen/MenuButton": {
+      "image": "MyCoolNewDesign",
+      "foregroundColor": {"r": 0, "g": 0, "b": 1, "a": 1},
+      "iconColor": {"r": 0, "g": 1, "b": 0, "a": 1}
+    },
+    "TechPickerScreen/TechButton": {
+      "image": "MyCoolNewDesign",
+      "alpha": 0.7
+    },
+    "WorldScreen/TopBar/ResourceTable": {
+      "alpha": 0.8
+    },
+    "WorldScreen/UnitTable": {
+      "tint": {"r": 1, "g": 0, "b": 0},
+      "image": "WorldScreen/TopBar/ResourceTable",
+      "alpha": 0.4
+    },
+    "WorldScreen/Minimap/Background": {
+      "tint": {"r": 0.2, "g": 0.4, "b": 0.45, "a": 1}
+    }
+  }
+}
+```
+
+### Config fields
+
+<AccordionGroup>
+  <Accordion title="baseColor">
+    **Type:** normalized RGBA object — **Default:** `{"r": 0, "g": 0.251, "b": 0.522, "a": 0.749}`
+
+    The color Unciv uses for most UI elements by default.
+  </Accordion>
+
+  <Accordion title="fallbackSkin">
+    **Type:** string — **Default:** `"Minimal"`
+
+    The name of another skin to use when an image is not found or not specified in this skin. Set to `null` to disable the fallback.
+  </Accordion>
+
+  <Accordion title="defaultVariantTint">
+    **Type:** normalized RGBA object — **Default:** `null`
+
+    The tint applied to all skin variants that do not specify their own tint. If you use directly colored images throughout your skin, set this to white (`{"r":1,"g":1,"b":1,"a":1}`) so the game does not alter the colors.
+  </Accordion>
+
+  <Accordion title="skinVariants">
+    **Type:** dictionary (string → SkinElement) — **Default:** empty
+
+    Per-element overrides for image, tint, and alpha. The key is the UI element path formed by appending the element name to its directory:
+
+    ```
+    WorldScreen/          + Notification  → "WorldScreen/Notification"
+    WorldScreen/TopBar/   + StatsTable    → "WorldScreen/TopBar/StatsTable"
+    ```
+
+    Each variant supports the following fields:
+
+    **`image`** — Path to an image file, relative to `Images/Skins/<YourSkinName>/`. Provide just a filename (e.g. `MyCoolNewDesign`) for an image in the skin root, or use another element's path (e.g. `WorldScreen/TopBar/ResourceTable`) to reuse an existing image.
+
+    **`tint`** — A normalized RGBA color applied as a tint on top of the image. If the image is colored and the tint is not white, the colors merge rather than override.
+
+    **`alpha`** — A float overriding the alpha component of `tint` if specified.
+
+    **`foregroundColor`** — A normalized RGBA color for the element's font and icons.
+
+    **`iconColor`** — A normalized RGBA color for the element's icons only. Overrides `foregroundColor` for icons if specified.
+  </Accordion>
+</AccordionGroup>

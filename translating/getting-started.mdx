@@ -1,0 +1,205 @@
+---
+title: "Contributing translations"
+description: "Help translate Unciv into your language using GitHub."
+---
+
+## How translations work
+
+Translation files live in [`android/assets/jsons/translations/`](https://github.com/yairm210/Unciv/tree/master/android/assets/jsons/translations) in the Unciv repository. Each language has its own `.properties` file (e.g. `French.properties`). The file format is simple key-value pairs:
+
+```properties
+Hello world = Bonjour le monde
+All [personFilter] are cool = Tous les [personFilter] sont cool
+```
+
+The key on the left of ` = ` is the English source string. The value on the right is your translation. Untranslated entries are marked with a `# Requires translation!` comment above them so you can find them quickly — these markers are removed automatically the next time the translation files are rebuilt.
+
+<Note>
+Right-to-left languages such as Arabic and Hebrew are not currently supported by the underlying framework.
+</Note>
+
+## Editing translations on GitHub
+
+You do not need to download anything. All translation work can be done directly on the GitHub website.
+
+1. Navigate to the translations folder and open your language file.
+2. Click the pencil icon (Edit this file) in the top-right corner.
+3. Make your changes in the editor.
+4. Scroll to the bottom and click **Propose changes** to create a pull request.
+
+GitHub handles forking and branching automatically when you edit a file in the main repository — see [GitHub workflow](#github-workflow) below for what happens behind the scenes.
+
+## App store text (Fastlane)
+
+Near the beginning of each language file you will find two special entries marked **Fastlane**. These are not shown in the game but are used to provide short and long descriptions for F-Droid and potentially other app stores. Read the comments directly above each entry for guidance on where to find the English originals.
+
+<Note>
+The long description entry uses `\n` codes for line breaks. See [Line breaks](#line-breaks) in the notes below for details.
+</Note>
+
+## Adding a new language
+
+<Warning>
+If any of the following steps are beyond your current skill set, ask for help in the repository. Steps 3–5 can be postponed — the language can be functional without them.
+</Warning>
+
+<Steps>
+  <Step title="Create the translation file">
+    In the translations folder on GitHub, click **Create a new file**. Name it after your language (e.g. `Klingon.properties`). Copy the full contents of [`template.properties`](https://github.com/yairm210/Unciv/tree/master/android/assets/jsons/translations/template.properties) into the new file and begin translating.
+  </Step>
+  <Step title="Add an entry to completionPercentages.properties">
+    For automatic language processing during releases, add a line to [`completionPercentages.properties`](https://github.com/yairm210/Unciv/tree/master/android/assets/jsons/translations/completionPercentages.properties):
+
+    ```properties
+    Klingon = 0
+    ```
+
+    The name to the left of ` = ` must match your file name exactly, case-sensitive, without the `.properties` extension. The number does not matter initially.
+  </Step>
+  <Step title="Add a flag icon">
+    For a proper display in the language picker, add a flag image to [`android/Images.Flags/FlagIcons/`](https://github.com/yairm210/Unciv/tree/master/android/Images.Flags/FlagIcons). The image should be a 128×128 px PNG with a circular flag centred on a transparent background. Check the [credits file](https://github.com/yairm210/Unciv/tree/master/docs/Credits.md) for existing image sources and add your source there when done.
+  </Step>
+  <Step title="Rebuild the texture atlas">
+    New images must be converted into the texture atlases. For a new flag, run the desktop version once from source, then upload the updated atlas files. See [Images and the texture atlas](https://github.com/yairm210/Unciv/blob/master/docs/Modders/Images-and-Audio.md#images-and-the-texture-atlas) for details.
+  </Step>
+  <Step title="Add a LocaleCode enum entry">
+    Add your language to the [`LocaleCode`](https://github.com/yairm210/Unciv/tree/master/core/src/com/unciv/models/metadata/GameSettings.kt#L261) enum in `GameSettings.kt`, following the existing pattern and the inline documentation. This is needed for:
+
+    - **Alphabetical sorting** — Java locale support varies; if Civilopedia entries appear unsorted after your language is live, open an issue.
+    - **Fastlane uploads** — Required for correct app store description folder mapping.
+
+    You can add this entry even if you cannot compile — just follow the existing pattern exactly.
+  </Step>
+</Steps>
+
+## Common pitfalls
+
+<Warning>
+**Square bracket placeholders must be preserved verbatim.**
+
+If the source string contains square brackets, your translation must include each placeholder exactly as written — same spelling, same capitalisation. You may reorder them freely, but you must not rename or remove them.
+
+```properties
+# Correct
+All [personFilter] are cool = Tous les [personFilter] sont cool
+
+# Wrong — placeholder renamed
+All [personFilter] are cool = Tous les [personnages] sont cool
+
+# Wrong — placeholder removed
+All [personFilter] are cool = Nous sommes vraiment cool
+```
+
+This is the most common cause of red "x" failures on pull requests.
+</Warning>
+
+<Warning>
+**Watch out for leading spaces.**
+
+If a translation key starts with a space, or has more than one space before the ` = `, those spaces are part of the key and must not be removed. Your translation should generally include them too, unless your language does not use spaces as separators.
+</Warning>
+
+<Warning>
+**Template changes can make translations disappear.**
+
+When a typo or wording change is fixed in the English source, the old template is no longer matched and the translation drops out. Use the file's history (the clock icon in the top-right of the GitHub file view) to find the old translation, copy it under the new template key, then proofread and adapt it to the updated English wording.
+</Warning>
+
+## Line breaks
+
+Some entries contain `\n` codes representing line breaks. Your translation can and usually should include them. You do not need to match the exact positions — aim for natural line breaks in your language, at roughly the same intervals as the original (shorter intervals if your script's glyphs are wider than Latin ones).
+
+<Warning>
+You cannot use actual newline characters in a translation value. You must use `\n` codes. A real newline terminates the entry.
+</Warning>
+
+## Fixing a failing PR check
+
+Unciv runs automated tests on every pull request. A red "x" means at least one check failed.
+
+1. Open your pull request on GitHub.
+2. Under **Some checks were not successful**, find the failing check and click **...** → **View details** (or click the red "x" next to a commit ID).
+3. Scroll up in the log to find a line such as `TranslationTests > allTranslationsHaveCorrectPlaceholders FAILED`.
+4. Read the lines above and below for the specific error message.
+5. Fix all reported errors, commit the changes, and wait for the checks to re-run.
+
+## GitHub workflow
+
+<Note>
+When you click **Edit** on a file in the main Unciv repository, GitHub runs these three steps automatically. Understanding them helps you know where your changes are at any point.
+</Note>
+
+1. **Fork** — GitHub creates a copy of the Unciv repository under your account (`yourUsername/Unciv`).
+2. **Commit** — Your edits are saved as a commit to your fork.
+3. **Pull request** — You open a request to merge your fork's changes into the main repository (`yairm210/Unciv`).
+
+If you are making multiple changes across several editing sessions, ensure your branch stays based on Unciv's `master` branch to avoid merge conflicts.
+
+## Diacritics support
+
+Some languages use diacritics or characters outside the [Basic Multilingual Plane](https://en.wikipedia.org/wiki/Plane_(Unicode)#Basic_Multilingual_Plane) (such as most emoji). The underlying libraries Unciv uses (libGdx, lwjgl3, GWT) assume one UTF-16 codepoint equals one rendered glyph, which breaks such scripts.
+
+Unciv provides a workaround: combinations of codepoints that should render as a single glyph are mapped into a dynamically created "fake alphabet" using the Unicode [Private Use Area](https://en.wikipedia.org/wiki/Private_Use_Areas). Activate this feature by setting `diacritics_support = true` in your translation file.
+
+<Warning>
+Consider this feature experimental. It can only work for scripts rendered left-to-right as individual glyphs, and it incurs a performance penalty at language load time. The total number of distinct diacritic combinations plus the number of ruleset objects in the loaded mods must not exceed 6,400.
+</Warning>
+
+The following settings are translation entries whose values are control instructions rather than translated text. All are optional, but some languages may show glitches without them.
+
+Character lists can be written as a plain string, as a quoted string with space-separated characters, or using `U+xxxx` notation (which requires space separators). Entry-specific comments are supported after a `#`.
+
+<AccordionGroup>
+  <Accordion title="diacritics_support">
+    Must be set to `true` for the feature to activate. Any other value passes text through unchanged.
+
+    ```properties
+    diacritics_support = true
+    ```
+  </Accordion>
+  <Accordion title="unicode_block_start_character and unicode_block_end_character">
+    Define the range of Unicode characters to consider. Defaults to the entire Basic Multilingual Plane. Characters outside this range pass through unchanged and reset the diacritics engine for the remainder of the line.
+
+    Limiting the range to the Unicode block for your language is a performance optimisation but is not required.
+
+    ```properties
+    unicode_block_start_character = U+0980
+    unicode_block_end_character = U+09FF
+    ```
+  </Accordion>
+  <Accordion title="left_joining_diacritics">
+    Additional codepoints that join with the character to their left. By default, Unicode categories Mn and Mc within the defined range are used.
+
+    ```properties
+    left_joining_diacritics = U+09CD # virama / hasanta
+    ```
+  </Accordion>
+  <Accordion title="right_joining_diacritics">
+    Additional codepoints that join with the character to their right. None are included by default.
+
+    ```properties
+    right_joining_diacritics = ""
+    ```
+  </Accordion>
+  <Accordion title="left_and_right_joiners">
+    Additional codepoints that join with both the character to their left and the character to their right. None are included by default.
+
+    ```properties
+    left_and_right_joiners = ""
+    ```
+  </Accordion>
+</AccordionGroup>
+
+Settings are applied in the order listed above. A later definition overrides an earlier one for the same codepoint — for example, a character in the Mn category (which falls into `left_joining_diacritics`) can be overridden by a `left_and_right_joiners` entry.
+
+## Why not use a crowdsourcing translation website?
+
+1. **Testing.** Translations undergo automated verification checks. The same platform runs both the code and the tests, so invalid translations can be caught and rejected consistently. External tools cannot integrate with these checks.
+2. **History and revisions.** Git provides a complete, searchable history of every change to every translation. No external service matches this.
+3. **Release cycle.** Unciv releases weekly. Importing translations from an external service would require a manual conversion step every release cycle, which adds friction and error risk.
+4. **Discussions.** GitHub issues and pull request comments allow translators, reviewers, and developers to discuss and correct translations in context. Most crowdsourcing platforms do not offer this.
+5. **Mass changes.** When an English source string changes (e.g. reordering words in a template), all affected translation files can be updated in one operation inside Git. On an external platform, this kind of bulk change is difficult or impossible.
+
+## Chinese tutorial
+
+如果你是中国人，那么恭喜你运气不错！这里有Unciv中文开发者们专门为中文翻译工作者准备的（十分详尽）教程视频：[视频链接 (Bilibili)](https://www.bilibili.com/video/BV1pY4y1u7WH/)

@@ -1,0 +1,202 @@
+---
+title: "Translation mods"
+description: "Add translations to your Unciv mods."
+---
+
+## Overview
+
+Mods can include their own translation files so that mod-added content (nations, units, buildings, uniques, and other named objects) is displayed in the player's chosen language. Translations live inside the mod's `jsons/translations/` folder, and Unciv merges them with the base game translations at runtime.
+
+<Note>
+Adding entirely new languages in a mod is not supported. The `completionPercentages.properties` file in the base game determines which languages Unciv recognises, and only those languages can be selected by players.
+</Note>
+
+## Translation file structure
+
+Create a `jsons/translations/` folder inside your mod directory and add one `.properties` file per language you want to support. File names must match an existing base game language file exactly, including capitalisation.
+
+```
+YourMod/
+└── jsons/
+    └── translations/
+        ├── English.properties
+        ├── French.properties
+        └── Hungarian.properties
+```
+
+Each file uses the same key-value format as the base game:
+
+```properties
+The Borg = The Borg
+Assimilation = Assimilation
+Your warmongering ways are unacceptable to us. = Votre bellicisme nous est inacceptable.
+```
+
+<Warning>
+Exact case matters — both in the keys (left of ` = `) and in the file names. A file named `hungarian.properties` will not be recognised.
+</Warning>
+
+## Generating "requires translation" entries
+
+Rather than writing every entry from scratch, you can use Unciv's built-in translation generator to produce a template of everything your mod needs translated.
+
+<Steps>
+  <Step title="Create the language file with at least one valid entry">
+    Create the `jsons/translations/` folder in your mod and add a `.properties` file for the language you want to support. The file must contain at least one valid translation of something present in your mod or the base game — the generator will not run on an entirely empty file.
+
+    ```properties
+    # Hungarian.properties
+    The Borg = The Borg
+    ```
+  </Step>
+  <Step title="Run Unciv with the mod installed">
+    Launch Unciv on desktop with your mod enabled. Open **Options → Advanced** and click **Generate translation files**.
+  </Step>
+  <Step title="Reload the translation file">
+    After the generator runs, reload the file. Unciv will have added `# Requires translation!` entries for every string in your mod that does not yet have a translation.
+
+    ```properties
+    # Requires translation!
+    Assimilate [mapUnitFilter] units = 
+
+    # Requires translation!
+    Resistance is futile. = 
+    ```
+
+    Translate each entry by filling in the value to the right of ` = `.
+  </Step>
+</Steps>
+
+<Note>
+The generator only adds entries for mod-specific content. It does not output base game strings, even if you want to override them in your mod. Override entries must be added manually (see [Overriding base game translations](#overriding-base-game-translations)).
+</Note>
+
+## Overriding base game translations
+
+You can override any base game translation in your mod's language file. A common use case is Base Ruleset mods that rename core concepts — for example, renaming "Gold" to "Credits".
+
+<Warning>
+If your mod's `English.properties` contains `gold = credits`, then every other language file must also translate the key `gold`, **not** the key `credits`. Translating `credits` instead of `gold` will result in the overridden term being untranslated.
+</Warning>
+
+```properties
+# English.properties — renames "gold" to "credits" in your mod
+gold = credits
+```
+
+```properties
+# French.properties — must translate the original key "gold"
+gold = crédits
+
+# Wrong — this key will never be matched
+credits = crédits
+```
+
+This pattern applies to all Base Ruleset mods, so check whether your mod redefines any base terms before translating.
+
+## How the translation generation system works
+
+Understanding the automatic template generation helps you know which strings need to be added manually and which are picked up automatically.
+
+Before each Unciv release, the `TranslationFileWriter` class rebuilds all translation templates. For every language, it:
+
+1. Copies all existing translation lines from `template.properties`.
+2. Scans every JSON file in the `jsons/` folder and extracts all string values — including strings inside objects, arrays, and nested structures at any depth.
+3. Generates a `key = value` line for each string found.
+4. Scans `UniqueType` and `UniqueParameterType` definitions and generates lines for them as well.
+
+**Consequence:** Any string that does not come from a JSON file or the `UniqueType` system must be added manually to `template.properties`. If you add new JSON structures to a mod, verify that `TranslationFileWriter` can parse them (collections must derive from `List` or `AbstractCollection`).
+
+### Adding strings manually
+
+If you add a UI string in code — such as `"Hello world".toLabel()` — it will not be picked up automatically. Add it to `template.properties` by hand:
+
+```properties
+Hello world = 
+```
+
+<Warning>
+The trailing space after ` = ` is required. Some editors strip trailing whitespace — use a dedicated editor or run the unit tests locally to catch this before pushing.
+</Warning>
+
+Leading spaces in a key, or more than one space before the ` = `, make those spaces part of the key. This is valid but easy to overlook; avoid it unless the spaces are genuinely part of the string.
+
+## Placeholder syntax
+
+Translation templates support two placeholder types.
+
+<CodeGroup>
+
+```properties Square brackets []
+# The outer template and inner value are both translated individually.
+# Use alias names inside the brackets — not the actual runtime value.
+Everyone gains [amount] gold! = 
+```
+
+```properties Curly brackets {}
+# The content inside {} is translated individually.
+# The surrounding text is passed through verbatim.
++5{Gold} = 
+```
+
+</CodeGroup>
+
+Square brackets take precedence over curly brackets. One level of curly brackets may be nested inside one level of square brackets.
+
+<Warning>
+The `[]`, `{}`, and `<>` bracket types are reserved and cannot appear in translatable text. Use `()` instead.
+</Warning>
+
+When a template uses square brackets, every placeholder must appear in your translation with exactly the same spelling and capitalisation. You may reorder them, but you must not rename or remove them.
+
+```properties
+# Correct — placeholder preserved, moved within the sentence
+Everyone gains [amount] gold! = [amount] złota dla wszystkich!
+
+# Wrong — placeholder renamed
+Everyone gains [amount] gold! = [liczba] złota dla wszystkich!
+```
+
+## Line breaks
+
+Some entries use `\n` to represent line breaks. Your translation can and usually should include them.
+
+- You do not need to match the exact positions of `\n` — place them where your language reads naturally.
+- If your script's glyphs are wider than Latin ones, use shorter intervals between line breaks.
+- You cannot use actual newlines in a translation value. Only `\n` codes are recognised.
+
+```properties
+# Original
+Resistance is futile.\nYou will be assimilated. = 
+
+# Translation with repositioned line break
+Resistance is futile.\nYou will be assimilated. = Le résistance est futile.\nVous serez assimilés.
+```
+
+## Extra translation (creative localisation)
+
+Beyond literal translation, you can write translations that better fit the tone and setting of your mod — sometimes called "extra translating". For example:
+
+```properties
+Your warmongering ways are unacceptable to us. = 即使在野蠻的荒土世界，窮兵黷武的行徑還是無法容忍的！
+# (Even in this savage wasteland world, warmongering ways are still unacceptable.)
+```
+
+This is encouraged when it improves the player experience and stays true to the mod's theme.
+
+## Testing translations
+
+<Steps>
+  <Step title="Run on desktop">
+    Testing translations requires the desktop version of Unciv. On Android, the game does not re-read files from disk unless it restarts — either force-stop the app after editing, or edit files in a GitHub repository and reinstall from there.
+  </Step>
+  <Step title="Switch to your language in settings">
+    Launch Unciv, open **Options**, and switch to the language you are testing.
+  </Step>
+  <Step title="Check in-game text">
+    Play through the content your mod adds and verify that translated strings appear correctly. Pay particular attention to entries with square bracket placeholders, as runtime values are substituted in and displayed inline.
+  </Step>
+  <Step title="Run unit tests (optional but recommended)">
+    If you can run the Unciv unit tests locally, do so before opening a pull request. Tests catch placeholder mismatches and other common mistakes automatically.
+  </Step>
+</Steps>

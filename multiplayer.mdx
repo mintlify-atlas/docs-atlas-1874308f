@@ -1,0 +1,145 @@
+---
+title: "Multiplayer"
+description: "Play Unciv with friends online using UncivServer or a cloud storage provider."
+---
+
+Multiplayer in Unciv is based on simple save-file upload and download. By default it uses a shared Dropbox account, but you can also host your own server for more reliability.
+
+<Warning>
+  Dropbox is the default multiplayer backend, but many players share this account, so it can become unavailable during periods of high usage. Hosting your own UncivServer is strongly recommended for a consistent experience.
+</Warning>
+
+## Starting a multiplayer game
+
+<Steps>
+  <Step title="Agree on a server">
+    Make sure all players are using the same multiplayer server. Each player should go to **Main Menu → Options → Multiplayer** and confirm the server address matches.
+  </Step>
+  <Step title="Share user IDs">
+    Each player should go to **Main Menu → Multiplayer → Copy user ID** and send their user ID to the game host.
+
+    Optionally, players can add each other's user IDs to their friends list via **Main Menu → Multiplayer → Friends list**.
+  </Step>
+  <Step title="Create the game">
+    The host goes to **Main Menu → Start new game**, checks **Online multiplayer** on the left side, and adds the other players on the right by entering their user IDs. When ready, click **Start game!**
+  </Step>
+  <Step title="Share the game ID">
+    After starting, the game ID is automatically copied to your clipboard. Send this game ID to all other players. If you lose it, retrieve it again from **Main Menu → Multiplayer → Copy game ID**.
+  </Step>
+  <Step title="Other players join">
+    Each other player goes to **Main Menu → Multiplayer → Add multiplayer game** and enters the game ID. The game then appears in their multiplayer screen and they can join.
+  </Step>
+</Steps>
+
+## Hosting your own UncivServer
+
+UncivServer is a lightweight HTTP file server included with Unciv. It can run on any computer with a Java JDK installed.
+
+<Steps>
+  <Step title="Install a Java JDK">
+    Make sure a Java JDK is installed on the machine that will run the server.
+  </Step>
+  <Step title="Download UncivServer.jar">
+    Download the latest release:
+
+    ```bash
+    wget https://github.com/yairm210/Unciv/releases/latest/download/UncivServer.jar
+    ```
+
+    Or visit the [Releases page](https://github.com/yairm210/Unciv/releases/latest/download/UncivServer.jar) directly.
+  </Step>
+  <Step title="Create the multiplayer files folder">
+    In the directory where `UncivServer.jar` is located, create a folder named `MultiplayerFiles`:
+
+    ```bash
+    mkdir MultiplayerFiles
+    ```
+  </Step>
+  <Step title="Start the server">
+    Run the following command from that directory:
+
+    ```bash
+    java -jar UncivServer.jar
+    ```
+
+    The server starts on port `8080` by default.
+  </Step>
+  <Step title="Verify the server is running">
+    Open Unciv on the same machine, go to **Options → Multiplayer**, enter `http://localhost:8080` as the server address, and click **Check connection to server**. You should see a **Success!** result.
+  </Step>
+  <Step title="Connect other devices">
+    On each player's device, go to **Options → Multiplayer** and enter your server's URL: `http://<your-ip-address>:<port>`. Click **Check connection to server** — a **Success!** result means the device is connected.
+
+    To make the server reachable from outside your local network, forward the server port (default `8080`) on your router, and use your real external IP address in the URL.
+  </Step>
+</Steps>
+
+<Note>
+  All devices playing together must be connected to the same multiplayer server. Devices on different servers cannot participate in the same game.
+
+  In many places, external IP addresses change periodically. If this affects you, consider using a dynamic DNS service so your server URL stays consistent.
+
+  Starting the server on ports `80` or `443` requires admin privileges. It is easier to run the server on port `8080` and use your router to forward port `80` to it.
+</Note>
+
+<AccordionGroup>
+  <Accordion title="Advanced: server options">
+    You can view all available flags with:
+
+    ```bash
+    java -jar UncivServer.jar --help
+    ```
+
+    The main options are:
+
+    | Flag | Environment variable | Default | Description |
+    |------|----------------------|---------|-------------|
+    | `-p` | `UncivServerPort` | `8080` | Port the server listens on |
+    | `-f` | `UncivServerFolder` | `./MultiplayerFiles/` | Folder where game files are stored |
+    | `-a` / `-no-auth` | `UncivServerAuth` | enabled | Enable or disable authentication |
+    | `-c` / `-no-chat` | `UncivServerChat` | enabled | Enable or disable chat |
+    | `-i` / `-no-Identify` | `UncivServerIdentify` | disabled | Log the IP address of each request |
+
+    Example with custom port and folder:
+
+    ```bash
+    java -jar UncivServer.jar -p 8080 -f /some/folder/
+    ```
+
+    The server performs simple file storage over HTTP. Files are **not** cleaned up automatically when a game ends or is deleted on the client side.
+  </Accordion>
+  <Accordion title="Advanced: Docker deployment">
+    You can run UncivServer in a Docker container. The full Unciv repository includes a `docker-compose.yml` for running the game client, but for a dedicated server deployment you can also containerize the jar directly.
+
+    A basic example using the jar:
+
+    ```bash
+    docker run -d \
+      -p 8080:8080 \
+      -v /your/multiplayer/folder:/data \
+      openjdk:17-jre \
+      java -jar /data/UncivServer.jar -p 8080 -f /data/MultiplayerFiles/
+    ```
+
+    Adjust the volume path and port to suit your environment.
+  </Accordion>
+</AccordionGroup>
+
+## Third-party servers
+
+### Self-hosted implementations
+
+Community members have built alternative UncivServer implementations in other languages:
+
+- [Mape6/Unciv\_server](https://github.com/Mape6/Unciv_server) — Python
+- [azzurite/unciv-server](https://gitlab.com/azzurite/unciv-server) — NodeJS
+- [oynqr/rust\_unciv\_server](https://github.com/oynqr/rust_unciv_server) — Rust
+- [touhidurrr/UncivServer.xyz](https://github.com/touhidurrr/UncivServer.xyz) — TypeScript / Bun
+
+### Publicly hosted community servers
+
+<Warning>
+  These servers are run by community members and are **not** official Unciv servers. They may become temporarily or permanently unavailable and could lose your game saves. They may also collect data such as your IP address or play frequency. Only use them if you accept these risks and trust the operators.
+</Warning>
+
+- [`https://uncivserver.xyz/`](https://uncivserver.xyz/) — Run by [@touhidurrr](https://github.com/touhidurrr) ([Discord](https://discord.gg/H9em4ws8XP), [source code](https://github.com/touhidurrr/UncivServer.xyz/))

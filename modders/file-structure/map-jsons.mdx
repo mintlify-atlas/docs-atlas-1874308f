@@ -1,0 +1,318 @@
+---
+title: "Map JSON files"
+description: "Reference for map-related JSON files: terrains, resources, improvements, and ruins."
+---
+
+<Note>
+  Only attributes marked **Required** must be provided. All others have a default value used when the attribute is omitted.
+</Note>
+
+<AccordionGroup>
+
+<Accordion title="Terrains.json">
+
+Contains base terrains, terrain features, and natural wonders that can appear on the map.
+
+<Note>
+  A base ruleset mod must provide at least one `Land` terrain and at least one `Water` terrain. Land-only or water-only mods are not supported.
+</Note>
+
+<ParamField path="name" type="string" required>
+  Name of the terrain. Some names have special meanings: `Grassland` is used as a fallback in certain display contexts. `River` is hardcoded to look up movement/yield bonuses — it should always be a `TerrainFeature` matching the vanilla definition.
+</ParamField>
+
+<ParamField path="type" type="enum" required>
+  One of: `Land`, `Water`, `TerrainFeature`, `NaturalWonder`.
+</ParamField>
+
+<ParamField path="occursOn" type="string[]" default="none">
+  For terrain features and natural wonders only: the base terrains this feature can be placed on.
+</ParamField>
+
+<ParamField path="turnsInto" type="string" default="none">
+  For `NaturalWonder` only: if set, the base terrain is changed to this value after placing the wonder and terrain features are cleared. Otherwise, terrain features are reduced to those present in `occursOn`.
+</ParamField>
+
+<ParamField path="weight" type="integer" default="10">
+  For `NaturalWonder` only: relative weight for being picked by the map generator.
+</ParamField>
+
+<ParamField path="<stats>" type="float" default="0">
+  Per-turn yield or bonus yield for the tile. Use any valid stat name (`production`, `food`, `gold`, `science`, `culture`, `happiness`, `faith`).
+</ParamField>
+
+<ParamField path="overrideStats" type="boolean" default="false">
+  If `true`, a terrain feature's yields replace the underlying terrain's yields instead of adding to them.
+</ParamField>
+
+<ParamField path="unbuildable" type="boolean" default="false">
+  If `true`, nothing can be built on this terrain — not even resource improvements.
+</ParamField>
+
+<ParamField path="impassable" type="boolean" default="false">
+  No unit can enter unless it has a special unique.
+</ParamField>
+
+<ParamField path="movementCost" type="integer" default="1">
+  Base movement cost to enter this terrain.
+</ParamField>
+
+<ParamField path="defenceBonus" type="float" default="0">
+  Combat bonus for units being attacked while on this terrain.
+</ParamField>
+
+<ParamField path="RGB" type="integer[3]" default="[225, 215, 0]">
+  RGB color used for the `Default` tileset display. Format: `[red, green, blue]`.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) this terrain has.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="TileResources.json">
+
+Lists the resources that a map tile can have.
+
+<Note>
+  Resources have two visual representations: an icon and a pixel graphic in the tileset. Omitting the icon produces a very poor UI. The `resourceType` enum cannot be changed in JSON.
+</Note>
+
+<ParamField path="name" type="string" required>
+  Name of the resource.
+</ParamField>
+
+<ParamField path="resourceType" type="enum" default="Bonus">
+  One of: `Bonus`, `Luxury`, or `Strategic`.
+</ParamField>
+
+<ParamField path="terrainsCanBeFoundOn" type="string[]" default="[]">
+  Terrains that this resource can appear on. Must exist in `Terrains.json`.
+</ParamField>
+
+<ParamField path="<stats>" type="integer" default="0">
+  Per-turn bonus yield for the tile when this resource is present. Use any valid stat name.
+</ParamField>
+
+<ParamField path="improvementStats" type="object" default="none">
+  Additional yield when the resource has been improved. Format follows [specialized stats](#specialized-stats).
+
+  ```json
+  "improvementStats": { "gold": 1, "production": 1 }
+  ```
+</ParamField>
+
+<ParamField path="revealedBy" type="string" default="none">
+  Technology required to see, work, and improve this resource.
+</ParamField>
+
+<ParamField path="improvedBy" type="string[]" default="[]">
+  Improvements that can be built to obtain this resource. Must exist in `TileImprovements.json`.
+</ParamField>
+
+<ParamField path="improvement" type="string" default="none">
+  Single improvement that obtains this resource. Must exist in `TileImprovements.json`. This field is redundant with `improvedBy`.
+</ParamField>
+
+<ParamField path="unique" type="string[]" default="[]">
+  List of [unique abilities](../uniques) this resource has.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="TileImprovements.json">
+
+Lists improvements that can be constructed or created on map tiles by units with appropriate uniques.
+
+<Note>
+  Improvements have two visual representations: an icon and a pixel graphic in the tileset. Omitting the icon produces a very poor UI; omitting the tileset graphic only loses an optional visualization. Special improvement names (`Road`, `Railroad`, `Remove *`, `Cancel improvement order`, `City ruins`, `City center`, `Barbarian encampment`) have hardcoded behavior.
+</Note>
+
+<ParamField path="name" type="string" required>
+  Name of the improvement.
+</ParamField>
+
+<ParamField path="terrainsCanBeBuiltOn" type="string[]" default="[]">
+  Terrains on which this improvement can be built. Removable terrain features must be removed first, unless the feature is listed here or the unique `Does not need removal of [tileFilter]` is used. Must exist in `Terrains.json`.
+</ParamField>
+
+<ParamField path="techRequired" type="string" default="none">
+  Technology required to build this improvement.
+</ParamField>
+
+<ParamField path="replaces" type="string" default="none">
+  Name of the improvement this one replaces. Must exist in `TileImprovements.json`.
+</ParamField>
+
+<ParamField path="uniqueTo" type="string" default="none">
+  Name of the nation for which this improvement is unique.
+</ParamField>
+
+<ParamField path="<stats>" type="integer" default="0">
+  Per-turn bonus yield for the tile when this improvement is present. Use any valid stat name.
+</ParamField>
+
+<ParamField path="turnsToBuild" type="integer" default="-1">
+  Turns a worker spends building this improvement. `-1` means unbuildable (though it can still be created via the `Can instantly construct a [improvementFilter] improvement` unique). `0` means always built in one turn.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) this improvement has.
+</ParamField>
+
+<ParamField path="shortcutKey" type="string" default="none">
+  Keyboard binding for worker actions. Only a single character is supported (no function keys or modifier combinations).
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="Ruins.json">
+
+Contains the possible rewards ancient ruins give when explored.
+
+<Note>
+  For base ruleset mods, if this file is omitted, ruins are inherited from the Vanilla ruleset. To declare that no ruins exist, include a file with an empty list (`[]`). If there are improvements with the `"Provides a random bonus when entered"` unique but no ruins are defined, the Mod checker flags this as an error.
+</Note>
+
+<ParamField path="name" type="string" required>
+  Name of the ruin reward. Never shown to the player, but must be unique within the file.
+</ParamField>
+
+<ParamField path="notification" type="string" required>
+  Notification added to the player when this reward is chosen. Some notifications accept parameters filled at runtime (see table below).
+</ParamField>
+
+<ParamField path="weight" type="integer" default="1">
+  Relative weight for this reward being chosen. A reward with weight 2 is twice as likely to be picked as one with weight 1.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) triggered when entering the ruins.
+</ParamField>
+
+<ParamField path="excludedDifficulties" type="string[]" default="[]">
+  Difficulties on which this reward may **not** be awarded.
+</ParamField>
+
+#### Notification parameters
+
+Some rewards produce non-deterministic results (e.g. a random gold amount). In those cases the notification text can include placeholder parameters filled at runtime:
+
+| Unique | Parameters |
+|--------|-----------|
+| Free [] found in the ruins | Unit name (including nation-unique units) |
+| [] population in a random city | City name |
+| Gain []-[] [] | Exact stat amount gained |
+| [] free random researchable Tech(s) from the [] | One placeholder per tech granted |
+| Gain enough Faith for a Pantheon | Faith amount |
+| Gain enough Faith for []% of a Great Prophet | Faith amount |
+
+#### Condition uniques for ruins
+
+A few uniques can be added to ruin effects to restrict when they are available:
+
+- `"Only available after [amount] turns"`
+- `"Only available <when religion is enabled>"`
+- `"Hidden after a great prophet has been earned"`
+
+</Accordion>
+
+<Accordion title="Tileset-specific JSON">
+
+A mod can define new tilesets or add to existing ones (primarily FantasyHex). One JSON file per tileset, named the same as the tileset, placed in a `TileSets/` subfolder relative to the other JSON files.
+
+<ParamField path="useColorAsBaseTerrain" type="boolean" default="false">
+  Use the terrain's RGB color as the base terrain tile instead of an image.
+</ParamField>
+
+<ParamField path="useSummaryImages" type="boolean" default="false">
+  Use summary images for tiles.
+</ParamField>
+
+<ParamField path="unexploredTileColor" type="object" default='{"r":0.25,"g":0.25,"b":0.25,"a":1}'>
+  Color for unexplored tiles. Format: `{"r": float, "g": float, "b": float, "a": float}`.
+</ParamField>
+
+<ParamField path="fogOfWarColor" type="object" default='{"r":0,"g":0,"b":0,"a":1}'>
+  Color for fog-of-war tiles.
+</ParamField>
+
+<ParamField path="fallbackTileSet" type="string" default='"FantasyHex"'>
+  Name of the tileset to fall back to. Set to `null` to disable.
+</ParamField>
+
+<ParamField path="tileScale" type="float" default="1.0">
+  Scale multiplier applied to all tiles.
+</ParamField>
+
+<ParamField path="tileScales" type="object" default="{}">
+  Per-terrain scale overrides. Overrides `tileScale` for the specified terrain names. Used by the Minimal tileset.
+</ParamField>
+
+<ParamField path="ruleVariants" type="object" default="{}">
+  Controls image substitutions when layering tile images. Each entry maps a tile content key to a list of image names to combine:
+
+  ```json
+  "ruleVariants": {
+      "Grassland+Forest": ["Grassland", "GrasslandForest"],
+      "Plains+Forest": ["Plains", "PlainsForest"]
+  }
+  ```
+
+  The key must match the tile's full content string. When a match is found, no other image layering is performed (except roads and units).
+
+  When multiple TileSetConfig files for the same tileset are merged, `ruleVariants` entries are merged (a same-key entry from a later mod overwrites an earlier one). The first three scalar properties use last-mod-wins behavior.
+</ParamField>
+
+</Accordion>
+
+</AccordionGroup>
+
+---
+
+## Stats
+
+Terrains, terrain features, resources, and improvements may all carry yield statistics. The valid stat names are:
+
+- `production`
+- `food`
+- `gold`
+- `science`
+- `culture`
+- `happiness`
+- `faith`
+
+### General stat
+
+An object carries general stats by including any combination of the above stat names as top-level fields:
+
+```json
+"gold": 2,
+"improvement": "Quarry"
+```
+
+### Specialized stats
+
+Specialized stats appear as a named sub-object. The sub-object contains any combination of the above stat names:
+
+```json
+"improvement": "Quarry",
+"improvementStats": { "gold": 1, "production": 1 }
+```
+
+<Note>
+  Stat values are usually integers, though the underlying code supports floating point. Fractional stat values are insufficiently tested and are not officially supported.
+</Note>

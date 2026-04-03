@@ -1,0 +1,167 @@
+---
+title: "Uniques system"
+description: "Use Unciv's Uniques system to add special abilities and mechanics to your mod."
+---
+
+## What are uniques?
+
+Objects in the game — terrains, units, buildings, improvements, policies, technologies, and more — differ by their stats, but what makes them mechanically distinct are their special abilities, called **Uniques**.
+
+Each game object can have any number of uniques. Uniques are the primary way modders add custom mechanics without modifying game code.
+
+## Unique types and concrete uniques
+
+Unique types are **templates** — strings with parameters in square brackets — that are implemented in the game source code. Each unique type defines a game mechanic that can be applied to any object that supports uniques. For example:
+
+```
+"Gain [amount] [stat]"
+```
+
+This is a type. Game objects must use **concrete** uniques with the parameters filled in:
+
+```json
+"Gain [20] [Gold]"
+```
+
+<Note>
+Concrete uniques with incorrect parameter values (e.g. `"Gain [three] [money]"`) are flagged by the mod checker. Serious errors are also shown when starting a new game with the mod.
+</Note>
+
+Each parameter type is defined separately and controls what values are valid. The full list of parameter types is on the [Unique parameters](/modders/unique-parameters) page.
+
+## How to add uniques in JSON
+
+Add uniques to any compatible game object using the `"uniques"` array in its JSON definition:
+
+```json
+{
+  "name": "Library",
+  "cost": 80,
+  "uniques": [
+    "+1 [Science] [in this city]",
+    "Gain [20] [Gold] <after discovering [Writing]>"
+  ]
+}
+```
+
+Every game object that supports uniques accepts this array. Valid objects include units, buildings, technologies, policies, terrains, improvements, resources, promotions, nations, eras, and more.
+
+## Conditionals and modifiers
+
+Uniques can be modified using special syntax enclosed in angle brackets (`<>`). These are listed in the uniques reference within `<these brackets>` and are appended after the main unique:
+
+```
+"Gain [30] [Gold] <after discovering [Steam Power]>"
+```
+
+The most common type of modifier is a **conditional** — it limits the unique to apply only under certain conditions. All modifiers are sometimes called conditionals.
+
+Other modifier types:
+
+- **Trigger conditions** — specify when a triggerable unique activates
+- **Unit action modifiers** — add costs, side effects, and limited uses to unit actions
+
+Conditionals also accept parameters following the same rules as regular unique parameters.
+
+<Tip>
+You can chain multiple conditionals on a single unique. Each conditional further limits when the effect applies.
+
+```json
+"[+10]% [Production] [in all cities] <during a Golden Age> <when at war>"
+```
+</Tip>
+
+## Triggerable uniques
+
+Most uniques are continuous effects — they apply as long as the object containing them is active (building standing, tech researched, policy adopted). **Triggerable uniques** are different: they are one-time effects that may fire multiple times.
+
+Triggerable uniques can be added to:
+
+- **Technologies** — trigger when researched
+- **Policies** — trigger when adopted
+- **Eras** — trigger when reached
+- **Buildings** — trigger when built
+- **Units** — grant the unit an action to activate the effect manually
+
+A triggerable unique with no trigger modifier fires immediately upon construction or discovery.
+
+Add a `TriggerCondition` modifier to a triggerable unique to make it a global unique that activates on a specific event:
+
+```json
+"Free [Musketman] appears <upon declaring war>"
+```
+
+### Unit action modifiers
+
+When a triggerable unique is attached to a unit and has `UnitActionModifier` or `UnitTriggerCondition` conditionals, it becomes a **unit action** — something the player can activate from the unit's action menu. Unit actions can include civilization-wide effects.
+
+```json
+"Gain [50] [Gold] <by spending [1] Movement>"
+```
+
+## Untyped uniques
+
+Some unique strings do not match any known type. These are called **untyped uniques** and are used as filters rather than active effects. For example, placing an untyped string on a terrain can allow other uniques to reference that terrain by the string.
+
+## Deprecated uniques and auto-update
+
+When unique types are renamed or restructured, Unciv marks the old type as deprecated. The game provides an **auto-update** feature: open the mod checker and click the update button to have Unciv rewrite all deprecated uniques in your mod automatically.
+
+<Note>
+Always make a backup of your mod before running the auto-update in case the migration produces unexpected results.
+</Note>
+
+## Examples
+
+<AccordionGroup>
+  <Accordion title="Building that grants gold on a tech discovery">
+    ```json
+    {
+      "name": "Trading Post",
+      "cost": 120,
+      "uniques": [
+        "Gain [30] [Gold] <after discovering [Steam Power]>"
+      ]
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Unit with a conditional combat bonus">
+    ```json
+    {
+      "name": "Berserker",
+      "unitType": "Melee",
+      "uniques": [
+        "[+33]% Strength <when attacking>",
+        "[-10]% Strength <when defending>"
+      ]
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Technology that grants a free unit">
+    ```json
+    {
+      "name": "Horseback Riding",
+      "uniques": [
+        "Free [Scout] appears"
+      ]
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Unit action that costs movement">
+    ```json
+    {
+      "name": "Spy",
+      "uniques": [
+        "Gain [100] [Gold] <by spending [2] Movement>"
+      ]
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Parameter reference
+
+All parameter types used in unique templates — such as `amount`, `stat`, `cityFilter`, `mapUnitFilter`, and others — are documented on the [Unique parameters](/modders/unique-parameters) page.

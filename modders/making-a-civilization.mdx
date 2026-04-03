@@ -1,0 +1,164 @@
+---
+title: "Making a New Civilization"
+description: "Create a custom civilization mod for Unciv with unique units, buildings, and abilities."
+---
+
+By the end of this guide, you will have a working, publicly available mod that adds a new civilization to the game.
+
+## Creation process
+
+<Steps>
+  <Step title="Create your repository">
+    - Create a [GitHub account](https://github.com/join) if you do not already have one.
+    - Go to the [Unciv mod example](https://github.com/yairm210/Unciv-mod-example) repository.
+    - Click the green **Use this template** button → **Create a new repository**.
+    - Choose a repository name and click **Create repository from template**. Keep the visibility set to **Public**.
+
+    Your new repository is now ready.
+  </Step>
+  <Step title="Fill in your nation info">
+    Each civilization has basic information: its name, leader name, colors, and city names. It also has flavor text for events like declaring war and introductions.
+
+    All of this goes in the `jsons/Nations.json` file. See the [base game Nations.json](https://github.com/yairm210/Unciv/blob/master/android/assets/jsons/Civ%20V%20-%20Gods%20%26%20Kings/Nations.json) for examples of how to structure each field.
+
+    ```json
+    [
+      {
+        "name": "My Nation",
+        "leaderName": "My Leader",
+        "adjective": ["My Nation's"],
+        "startBias": [],
+        "preferredVictoryType": "Domination",
+        "declaringWar": "We declare war!",
+        "attacked": "We have been attacked!",
+        "defeated": "We have been defeated.",
+        "introduction": "Greetings, I am My Leader.",
+        "neutralHello": "Hello.",
+        "hateHello": "What do you want.",
+        "tradeRequest": "Perhaps we can trade.",
+        "innerColor": [255, 255, 255],
+        "outerColor": [0, 0, 0],
+        "uniqueName": "My Unique Ability",
+        "uniques": [],
+        "cities": ["City One", "City Two", "City Three"]
+      }
+    ]
+    ```
+  </Step>
+  <Step title="Get your civ icon">
+    Each civilization has an icon (like the wreath for Rome) for instant identification.
+
+    - Icons must be white on a transparent background, and exactly **100x100 pixels**.
+    - Place the icon file in the `Images/NationIcons/` folder of your repository.
+    - On GitHub, navigate to that folder and click **Add file → Create a new file** (or upload the file directly).
+
+    See [icon considerations](#icon-considerations) below for legal and sourcing guidance.
+  </Step>
+  <Step title="Test it out">
+    - Open Unciv.
+    - Click **Mods** → **Download mod from URL**.
+    - Paste your repository's URL into the text box and click **Download**.
+    - Exit the mod screen and create a new game, selecting your mod under **Extension mods** on the left.
+
+    Your civilization is now fully playable.
+
+    <Note>
+      You may not see images from your mod yet, since it has no texture atlas. On Desktop, restart Unciv to generate the atlas and see the images. See [Images and the Texture atlas](https://github.com/yairm210/Unciv/blob/master/docs/Modders/Images-and-Audio.md#images-and-the-texture-atlas) for details.
+    </Note>
+
+    At this point the nation's abilities are the same as the base mod. To make it truly unique, you need to add uniques.
+  </Step>
+  <Step title="Add unique units">
+    Units are defined in `jsons/Units.json`. See the [base game Units.json](https://github.com/yairm210/Unciv/blob/master/android/assets/jsons/Civ%20V%20-%20Gods%20%26%20Kings/Units.json) for the full structure.
+
+    ```json
+    [
+      {
+        "name": "My Unique Unit",
+        "unitType": "Melee",
+        "replaces": "Warrior",
+        "civilopediaText": [],
+        "cost": 40,
+        "movement": 2,
+        "strength": 9,
+        "uniques": ["Bonus vs [Mounted] units [33]%"],
+        "upgradeTo": "Swordsman",
+        "requiredTech": null,
+        "promotions": []
+      }
+    ]
+    ```
+
+    Unit icons must be **200x200 pixels**, white on a transparent background. Place them in `Images/UnitIcons/`.
+
+    Look at an existing unique unit in the base game file to understand how units reference which regular unit they replace via the `"replaces"` field.
+  </Step>
+  <Step title="Add unique buildings">
+    Buildings are defined in `jsons/Buildings.json`. See the [base game Buildings.json](https://github.com/yairm210/Unciv/blob/master/android/assets/jsons/Civ%20V%20-%20Gods%20%26%20Kings/Buildings.json) for structure examples.
+
+    ```json
+    [
+      {
+        "name": "My Unique Building",
+        "replaces": "Monument",
+        "cost": 60,
+        "maintenance": 0,
+        "uniques": ["[+2 Culture] [in this city]", "[+1 Happiness]"],
+        "requiredTech": null,
+        "quote": "A monument to our greatness."
+      }
+    ]
+    ```
+
+    Building icons must also be **200x200 pixels**, white on a transparent background. Place them in `Images/BuildingIcons/`.
+  </Step>
+  <Step title="Add a civilization unique">
+    Civilization-level uniques go in the `"uniques"` array inside your nation's entry in `jsons/Nations.json`.
+
+    Unciv has a large library of unique effects you can apply. See the full [list of uniques](https://github.com/yairm210/Unciv/blob/master/docs/Modders/uniques.md) to find the ones that fit your civilization's identity.
+
+    ```json
+    "uniques": [
+      "[+15]% Production when constructing [Military] buildings [in all cities]",
+      "Melee units pay no movement cost to pillage"
+    ]
+    ```
+  </Step>
+  <Step title="Make it searchable">
+    To list your mod in the Unciv Mod Manager:
+
+    - Open your GitHub repository.
+    - Click the gear icon to the right of the **About** label (top-right).
+    - Under **Topics**, add `unciv-mod`.
+    - Click **Save changes**.
+
+    Your mod will now appear in the Mod Manager. The more stars your repository has, the higher it appears in the list.
+  </Step>
+</Steps>
+
+## Icon considerations
+
+All icons must be legally acceptable. They must either come from open sources or be used in accordance with their license.
+
+- Icons directly from the base game belong to Firaxis and should not be reused.
+- For Creative Commons icons, you must specify the source and creator (a `Credits.md` file in your repo is a good place for this).
+- [The Noun Project](https://thenounproject.com) is a reliable source — everything there is Creative Commons or open.
+
+Credits for icons should go in a `Credits.md` file at the root of your repository.
+
+## What's next?
+
+<CardGroup cols={2}>
+  <Card title="Images and audio" icon="images" href="/modders/images-and-audio">
+    Add texture atlas files to your repo so users see your custom images in-game.
+  </Card>
+  <Card title="Explore uniques" icon="star" href="/modders/uniques">
+    Browse the Uniques system to expand your civilization's abilities.
+  </Card>
+  <Card title="Mod file structure" icon="folder-open" href="/modders/file-structure/overview">
+    Explore the full mod file structure to add more game objects.
+  </Card>
+  <Card title="Base Ruleset template" icon="layer-group" href="https://github.com/yairm210/Unciv-minimal-base-ruleset">
+    Try creating a full base ruleset mod from the minimal template.
+  </Card>
+</CardGroup>

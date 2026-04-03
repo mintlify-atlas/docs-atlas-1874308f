@@ -1,0 +1,99 @@
+---
+title: "Coding standards"
+description: "Code style and conventions used in the Unciv codebase."
+---
+
+As an open-source project, there will be many eyes on the code. The main goal of these standards is for the code to be as immediately readable as possible to as many potential contributors as possible. Most rules default to coding structures that already exist in similar languages (Java, C#).
+
+## Remove trailing spaces before committing
+
+Trailing spaces are indent characters that appear as `..` at the start of a blank line. Android Studio defaults to creating similar indents to the previous line, so when you press Enter to create a blank line inside a code block, it often inserts trailing whitespace.
+
+Unchecking **Remove trailing spaces on save** is necessary for the translation part of the project (trailing spaces in `template.properties` are meaningful), but those same characters cause annoying merge conflicts in regular code files.
+
+**Before committing non-translation code**, remove any trailing spaces manually:
+
+- Go to **Settings → Editor → General → Appearance** and enable **Show whitespaces** to make them visible.
+- Find and remove the `..` characters before committing.
+
+<Warning>
+  Do not commit trailing whitespace in non-translation files. It causes merge conflicts that affect every contributor who touches those lines.
+</Warning>
+
+## Do not use `.let {}` and `?:`
+
+Kotlin's null-safety is a strength, but `.let {}` and `?:` can obscure intent for contributors coming from Java or other languages.
+
+Replace them with a plain `if` check:
+
+```kotlin
+// Avoid
+x?.let { doSomething(it) }
+val result = x ?: defaultValue
+
+// Prefer
+if (x != null) doSomething(x)
+val result = if (x != null) x else defaultValue
+```
+
+The `if (x != null)` form is familiar to anyone who has written Java or C#, compiles to equivalent bytecode, and is unambiguous at a glance.
+
+<Note>
+  When in doubt, choose readability. These constructs all compile to roughly the same bytecode, so there is no performance argument for the more exotic form.
+</Note>
+
+## Use `for` loops, not `forEach`
+
+```kotlin
+// Avoid
+list.forEach { item -> process(item) }
+
+// Prefer
+for (item in list) process(item)
+```
+
+`for` loops go back decades and are universally understood. `forEach` accepts a lambda, which has two practical downsides:
+
+1. Many debuggers do not automatically step into `forEach` lambdas, making debugging harder.
+2. Contributors less familiar with Kotlin's functional style may find lambdas less readable.
+
+<Note>
+  The `for (item in list)` form is idiomatic Kotlin and is the preferred loop construct throughout the codebase.
+</Note>
+
+## Avoid premature abstraction
+
+Do not create an interface if there is only one implementation of that interface.
+
+```kotlin
+// Avoid — no concrete benefit when only one implementation exists
+interface DataProvider {
+    fun getData(): List<String>
+}
+class ConcreteDataProvider : DataProvider { ... }
+
+// Prefer — add the interface later if a second implementation actually appears
+class DataProvider {
+    fun getData(): List<String> { ... }
+}
+```
+
+Premature abstraction:
+
+- Hides the actual code that runs, increasing "Time To Relevant Code."
+- Adds indirection that makes navigation and debugging harder.
+- Can always be added later when a second implementation actually exists.
+
+<Note>
+  This principle is closely related to the project's guiding philosophy of minimal objects and maximum interactions. Add abstraction when it solves a real, present problem — not a hypothetical future one.
+</Note>
+
+## Crash early, crash often
+
+When the game reaches an incorrect state, throw an exception rather than silently recovering.
+
+A crash with a stack trace is halfway to a fix. A save file that reliably reproduces the crash is 90% of the way there. Persisting with bad state moves the eventual symptom far from the actual cause, making bugs significantly harder to diagnose.
+
+<Warning>
+  Do not swallow exceptions or silently substitute default values when the data indicates the game is in an inconsistent state. Crashing fast keeps bugs easy to find and fix.
+</Warning>

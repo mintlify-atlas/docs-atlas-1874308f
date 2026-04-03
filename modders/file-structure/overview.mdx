@@ -1,0 +1,154 @@
+---
+title: "Mod file structure overview"
+description: "Understand the JSON file format used in Unciv mods."
+---
+
+## General overview of JSON files
+
+Almost all Unciv JSON files start with `[` and end with `]`. In between these are objects describing a single game element (unit, building, etc.), each enclosed in `{` and `}`.
+
+A minimal `Units.json` with two entries looks like this:
+
+```json
+[
+    {
+        "name": "Warrior",
+        "cost": 16
+    },
+    {
+        "name": "Spearman",
+        "cost": 24,
+        "promotions": ["Shock I", "Drill I"]
+    }
+]
+```
+
+These objects have attributes such as `name` (a String), `cost` (an Integer), and `promotions` (a List of Strings).
+
+### Attribute types
+
+| Type | Notes |
+|------|-------|
+| String | A word or sentence. Must be wrapped in double quotes (`"`). Escape literal double quotes inside a string with `\"`. |
+| Integer | A whole number, positive or negative. Must **not** be wrapped in quotes. |
+| Float | A number that may have decimal places. Use `.` as the decimal separator (JSON standard). Scientific notation is accepted. |
+| Boolean | Either `true` or `false`. Must **not** be wrapped in quotes. |
+| List of [type] | Multiple values enclosed in square brackets and separated by commas. E.g. `["Shock I", "Shock II"]` or `[1, 2, 3]`. |
+| Object | A set of key-value pairs enclosed in `{` and `}`. Each key is a string and each value has its own type. |
+
+### Object example
+
+A `Buildings.json` entry that adds a "Cultural Library" giving +50% science and +50% culture:
+
+```json
+[
+    {
+        "name": "Cultural Library",
+        "percentStatBonus": {"science": 50, "culture": 50}
+    }
+]
+```
+
+Here `percentStatBonus` is an Object whose keys are `"science"` and `"culture"` and both have the value `50`.
+
+---
+
+## Requirements for base rulesets
+
+Base ruleset mods must be self-contained, but they do not need to include every possible JSON file. The table below summarises what is required.
+
+<Note>
+  Mod loading never fails due to missing files — they default to empty first. Fallbacks are then applied for base rulesets only. Any remaining inconsistencies are reported by the Mod checker.
+  - `GlobalUniques` has a fallback used when the file is missing. To declare that **no** global uniques exist, include a file with empty object content (`{}`).
+  - `Ruins` has a fallback used when the file is missing. To declare that **no** ruins exist, include a file with an empty list (`[]`).
+</Note>
+
+| File | Empty allowed? | Default / fallback |
+|------|----------------|--------------------|
+| Beliefs | yes | none |
+| Buildings | no | none |
+| CityStateTypes | no | vanilla |
+| Difficulties | no | vanilla |
+| Eras | no | none |
+| GlobalUniques | yes | vanilla |
+| ModOptions | yes | generated on download |
+| Nations | no | none |
+| Policies | yes | none |
+| Quests | yes | none |
+| Religions | yes | none |
+| Ruins | yes | vanilla |
+| Specialists | yes | none |
+| Speeds | no | vanilla |
+| Techs | yes | none |
+| Terrains | no | none |
+| TileImprovements | yes | none |
+| TileResources | yes | none |
+| Tutorials | yes | built-in always displayed |
+| UnitPromotions | yes | none |
+| Units | no | none |
+| UnitTypes | no | vanilla |
+| VictoryTypes | no | vanilla |
+
+---
+
+## Uniques
+
+"Uniques" are Unciv's system for extensible, customisable effects. Nearly every ruleset object accepts a `uniques` field containing a list of unique strings.
+
+Every unique follows this general structure:
+
+```
+Unique type name [placeholder] more name [another placeholder] <condition or trigger> <condition or trigger>...
+```
+
+- Everything outside `<>` delimiters (excluding placeholder content but keeping `[]`) is used to look up the unique's implementation.
+- `[placeholder]` content is an implementation-dependent parameter — see the [Unique parameters](/modders/unique-parameters) reference.
+- `<condition or trigger>` sections are optional and themselves follow the same structural rules (minus nested conditionals).
+
+### Example
+
+```json
+"uniques": ["[+1 Gold] <with a garrison>"]
+```
+
+When placed on a building, this gives +1 Gold per turn — but only when the city has a garrison. In this example, `[+1 Gold]` is a `Stats` effect unique and `with a garrison` is a `ConditionalWhenGarrisoned` condition unique.
+
+<Note>
+  All unique types with an implementation in Unciv are documented in the [uniques](/modders/uniques) reference. Note the separate sections for [conditionals and modifiers](/modders/uniques#conditionals-and-modifiers) and [triggerable uniques](/modders/uniques#triggerable-uniques).
+
+  Uniques that do not match any documented type (including exact upper/lower case) are called **untyped** — they have no direct effect and the Ruleset Validator will warn about them. The one legitimate use of untyped uniques is as **filter markers** (example: `"Aircraft"` used as a unit filter). Filter uniques must have no placeholders or conditionals to pass validation.
+</Note>
+
+## JSON schema validation
+
+Unciv provides JSON Schema files for all mod JSON files, enabling autocomplete, type checking, and inline warnings in your editor.
+
+<Tabs>
+  <Tab title="Android Studio">
+    <Steps>
+      <Step title="Open JSON Schema Mappings">
+        Double-press Space, search for **json schema mappings**, and press Enter.
+      </Step>
+      <Step title="Add a schema">
+        Click **+** (under the Language & Frameworks text), then add the schema URL for the file you want to validate:
+
+        ```
+        https://raw.githubusercontent.com/yairm210/Unciv/master/docs/Modders/schemas/Buildings.schema.json
+        ```
+
+        Click **+** under the Schema Version text, choose **File pattern**, and enter `*/Buildings.json`.
+      </Step>
+      <Step title="Repeat for other files">
+        Repeat for each JSON file type you work with (Units, Nations, Techs, etc.). Schema files are available at `docs/Modders/schemas/` in the repository.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="VS Code">
+    Install the [VSCode Unciv Extension](https://github.com/robloach/vscode-unciv):
+
+    1. Press **Ctrl+P** to open the command palette.
+    2. Enter: `ext install robloach.unciv`
+
+    The extension enables all JSON schemas automatically, with autocomplete, IntelliSense, and file checking.
+  </Tab>
+</Tabs>

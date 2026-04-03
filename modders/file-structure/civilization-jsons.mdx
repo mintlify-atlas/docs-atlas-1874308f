@@ -1,0 +1,548 @@
+---
+title: "Civilization JSON files"
+description: "Reference for civilization-related JSON files: nations, buildings, techs, policies, and more."
+---
+
+<Note>
+  Only attributes marked **Required** must be provided. All others have a default value that is used when the attribute is omitted.
+</Note>
+
+<AccordionGroup>
+
+<Accordion title="Beliefs.json">
+
+Contains the beliefs that can be chosen for religions in your mod.
+
+<ParamField path="name" type="string" required>
+  Name of the belief.
+</ParamField>
+
+<ParamField path="type" type="enum" required>
+  Type of belief. Must be one of: `Pantheon`, `Founder`, `Follower`, or `Enhancer`.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) this belief adds to cities following it.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="Buildings.json">
+
+Contains all buildings and wonders available in your mod.
+
+<ParamField path="name" type="string" required>
+  Name of the building.
+</ParamField>
+
+<ParamField path="cost" type="integer" default="-1">
+  Production required to build. If `-1`, the `buildingCost` from the tech column of `requiredTech` is used.
+</ParamField>
+
+<ParamField path="<stats>" type="float" default="0">
+  Per-turn yield produced by the building. Use any valid stat name (`production`, `food`, `gold`, `science`, `culture`, `happiness`, `faith`). See [Stats](/modders/file-structure/map-jsons#stats).
+</ParamField>
+
+<ParamField path="maintenance" type="integer" default="0">
+  Gold maintenance cost per turn.
+</ParamField>
+
+<ParamField path="isWonder" type="boolean" default="false">
+  Whether this building is a global wonder.
+</ParamField>
+
+<ParamField path="isNationalWonder" type="boolean" default="false">
+  Whether this building is a national wonder.
+</ParamField>
+
+<ParamField path="requiredBuilding" type="string" default="none">
+  A building that must be built before this one. Must exist in `Buildings.json`.
+</ParamField>
+
+<ParamField path="requiredTech" type="string" default="none">
+  Technology that must be researched before this building can be built. Must exist in `Techs.json`.
+</ParamField>
+
+<ParamField path="requiredResource" type="string" default="none">
+  Resource consumed when building this. Must exist in `TileResources.json`.
+</ParamField>
+
+<ParamField path="requiredNearbyImprovedResources" type="string[]" default="[]">
+  The building can only be built if any resource in this list is within the city's borders and has been improved. Each must exist in `TileResources.json`.
+</ParamField>
+
+<ParamField path="replaces" type="string" default="none">
+  Name of the building this one replaces. Must exist in `Buildings.json`.
+</ParamField>
+
+<ParamField path="uniqueTo" type="string" default="none">
+  If set, only the nation with this name can build this building. Must exist in `Nations.json`.
+</ParamField>
+
+<ParamField path="cityStrength" type="integer" default="0">
+  Combat strength bonus granted to the city where this building is built.
+</ParamField>
+
+<ParamField path="cityHealth" type="integer" default="0">
+  Health bonus granted to the city where this building is built.
+</ParamField>
+
+<ParamField path="hurryCostModifier" type="integer" default="0">
+  When bought with gold or faith, the price is increased by this many percent.
+</ParamField>
+
+<ParamField path="quote" type="string" default="none">
+  For wonders and national wonders: shown on the completion popup.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) this building has.
+</ParamField>
+
+<ParamField path="replacementTextForUniques" type="string" default="none">
+  If provided, this string is shown instead of the list of uniques.
+</ParamField>
+
+<ParamField path="percentStatBonus" type="object" default="none">
+  Percentage bonus for stats. Same format as [specialized stats](/modders/file-structure/map-jsons#specialized-stats). Numbers represent percent bonus (e.g. `30` means 30% bonus).
+</ParamField>
+
+<ParamField path="greatPersonPoints" type="object" default="none">
+  Great person points generated per turn. Keys are unit names (e.g. `"Great Scientist"`), values are integers.
+</ParamField>
+
+<ParamField path="specialistSlots" type="object" default="none">
+  Specialist slots provided. Keys are specialist names (as defined in `Specialists.json`), values are integers representing the number of slots.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="CityStateTypes.json">
+
+Defines the types of city states and the bonuses major civilizations receive for befriending or allying with them.
+
+<Note>
+  For base ruleset mods, if this file is omitted or contains an empty list, all types from the Vanilla ruleset are automatically added: Cultured, Maritime, Mercantile, Militaristic, Religious.
+</Note>
+
+<ParamField path="name" type="string" required>
+  Name of the city state type.
+</ParamField>
+
+<ParamField path="friendBonusUniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) granted to major civilizations when **friends** with a city state of this type.
+</ParamField>
+
+<ParamField path="allyBonusUniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) granted to major civilizations when **allied** to a city state of this type.
+</ParamField>
+
+<ParamField path="color" type="integer[3]" default="[255, 255, 255]">
+  RGB color of the text in the Civilopedia. Format: `[red, green, blue]` each in the range 0–255.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="Nations.json">
+
+Contains all nations and city states, including Barbarians and Spectator.
+
+<ParamField path="name" type="string" required>
+  Name of the nation.
+</ParamField>
+
+<ParamField path="leaderName" type="string" default="none">
+  Omit only for city states. If you want leader portraits, image file names must match exactly including case.
+</ParamField>
+
+<ParamField path="style" type="string" default="none">
+  Modifier appended to pixel unit image names.
+</ParamField>
+
+<ParamField path="cityStateType" type="string" default="none">
+  Distinguishes major civilizations from city states. Must exist in `CityStateTypes.json`.
+</ParamField>
+
+<ParamField path="startBias" type="string[]" default="[]">
+  Zero or more terrain filters or `"Avoid [terrainFilter]"` entries that influence starting region selection.
+</ParamField>
+
+<ParamField path="preferredVictoryType" type="string" default="Neutral">
+  The victory type this major civilization's AI will pursue. Does not need to be defined in `VictoryTypes.json`.
+</ParamField>
+
+<ParamField path="personality" type="string" default="none">
+  The name of the personality specified in `Personalities.json`.
+</ParamField>
+
+<ParamField path="favoredReligion" type="string" default="none">
+  The religion this civilization will choose if available when founding a religion. Must exist in `Religions.json`.
+</ParamField>
+
+<ParamField path="startIntroPart1" type="string" default="none">
+  First paragraph of the introductory blurb shown to the player on game start.
+</ParamField>
+
+<ParamField path="startIntroPart2" type="string" default="none">
+  Second paragraph of the introduction. Leave empty to skip the alert. Do **not** set this to `"TBD"`.
+</ParamField>
+
+<ParamField path="declaringWar" type="string" default="none">
+  Diplomatic greeting when declaring war. Voice hook supported.
+</ParamField>
+
+<ParamField path="attacked" type="string" default="none">
+  Diplomatic greeting when attacked. Voice hook supported.
+</ParamField>
+
+<ParamField path="defeated" type="string" default="none">
+  Diplomatic greeting when defeated. Voice hook supported.
+</ParamField>
+
+<ParamField path="denounced" type="string" default="none">
+  Diplomatic greeting when denounced. Voice hook supported.
+</ParamField>
+
+<ParamField path="introduction" type="string" default="none">
+  First-contact greeting. Voice hook supported.
+</ParamField>
+
+<ParamField path="neutralHello" type="string" default="none">
+  Greeting in neutral diplomatic state. Voice hook supported.
+</ParamField>
+
+<ParamField path="hateHello" type="string" default="none">
+  Greeting in hostile diplomatic state. Voice hook supported.
+</ParamField>
+
+<ParamField path="tradeRequest" type="string" default="none">
+  Greeting when requesting a trade. Voice hook supported.
+</ParamField>
+
+<ParamField path="declaringFriendship" type="string" default="none">
+  Greeting when declaring friendship. Voice hook supported.
+</ParamField>
+
+<ParamField path="innerColor" type="integer[3]" default="[0,0,0]">
+  RGB color for the **outer ring** of the nation icon. Format: `[red, green, blue]`.
+</ParamField>
+
+<ParamField path="outerColor" type="integer[3]" required>
+  RGB color for the **inner circle** of the nation icon. Format: `[red, green, blue]`.
+</ParamField>
+
+<ParamField path="uniqueName" type="string" default="none">
+  Decorative name for this nation's special characteristic.
+</ParamField>
+
+<ParamField path="uniqueText" type="string" default="none">
+  Replacement text for the `uniques` list display. If empty, uniques are listed individually.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) this civilization has.
+</ParamField>
+
+<ParamField path="cities" type="string[]" default="[]">
+  City names used sequentially for newly founded cities. Required for major civilizations and city states.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="Personalities.json">
+
+Contains personalities for computer-controlled players. AI behavior is driven by numeric weights on stats and behaviors.
+
+<ParamField path="name" type="string" required>
+  Name of the personality.
+</ParamField>
+
+<ParamField path="preferredVictoryType" type="string" default="Neutral">
+  The victory type this personality's AI will pursue.
+</ParamField>
+
+<ParamField path="<stats> / <behaviors>" type="float" default="5">
+  Focus weight for a stat or behavior. Typically ranges from 0 (no focus) to 10 (double focus). Valid behavior names: `Military`, `Agressive`, `War`, `Commerce`, `Diplomacy`, `Loyal`, `Expansion`, `DenounceWillingness`.
+</ParamField>
+
+<ParamField path="priorities" type="object" default="none">
+  Priority for each policy branch. Maps branch names to integer priority values. Branches not listed default to `0`.
+
+  ```json
+  "priorities": {
+      "Tradition": 30,
+      "Liberty": 20,
+      "Honor": 10
+  }
+  ```
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) this personality has.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+<Warning>
+  Personality behaviors (`Military`, `Agressive`, etc.) are **not fully implemented** and their names may change. Using them prematurely may make the mod unplayable.
+</Warning>
+
+</Accordion>
+
+<Accordion title="Policies.json">
+
+Contains all social policies purchasable with culture. Policies are organized into branches; each branch has an opener, one or more member policies, and a finisher.
+
+The opener's properties are defined at the branch level. The finisher is a member entry named `"[branch name] Complete"` (case-sensitive; e.g., `"Tradition Complete"`).
+
+### Branch structure
+
+<ParamField path="name" type="string" required>
+  Name of the policy branch.
+</ParamField>
+
+<ParamField path="era" type="string" required>
+  Era in which this branch is unlocked. Must exist in `Eras.json`.
+</ParamField>
+
+<ParamField path="priorities" type="object" default="none">
+  AI victory-type priorities for this branch. Maps victory type names to integers. Example:
+
+  ```json
+  "priorities": {
+      "Neutral": 0,
+      "Cultural": 10,
+      "Diplomatic": 0,
+      "Domination": 0,
+      "Scientific": 10
+  }
+  ```
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  Unique abilities granted upon adopting this branch opener.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia.
+</ParamField>
+
+<ParamField path="policies" type="object[]" default="[]">
+  List of member policies and the branch finisher. Pay attention to the nesting of `{}` and `[]`.
+</ParamField>
+
+### Member policy structure
+
+<ParamField path="name" type="string" required>
+  Name of the policy.
+</ParamField>
+
+<ParamField path="row" type="integer" required>
+  Vertical placement in the policy tree UI. Each unit is approximately half an icon size.
+</ParamField>
+
+<ParamField path="column" type="integer" required>
+  Horizontal placement in the policy tree UI. Each unit is approximately half an icon size.
+</ParamField>
+
+<ParamField path="requires" type="string[]" default="[]">
+  Prerequisite policy names that must be adopted before this policy becomes available.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  Unique abilities granted upon adopting this member policy.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia.
+</ParamField>
+
+### Branch finisher structure
+
+<ParamField path="name" type="string" required>
+  Must be `"[branch name] Complete"` (e.g., `"Tradition Complete"`).
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  Unique abilities granted upon completing all member policies in the branch.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="Quests.json">
+
+Contains quests that city states may give to major civilizations.
+
+<ParamField path="name" type="string" required>
+  Defines the quest criteria. Must match a predefined quest name (see table below) to have any behavior.
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Description shown to players. Square brackets `[]` in the text are replaced with target information (except for the `Invest` quest).
+</ParamField>
+
+<ParamField path="type" type="enum" default="Individual">
+  `Individual` or `Global`.
+</ParamField>
+
+<ParamField path="influence" type="float" default="40">
+  Influence reward gained on quest completion.
+</ParamField>
+
+<ParamField path="duration" type="integer" default="0">
+  Maximum number of turns to complete the quest. `0` means no turn limit.
+</ParamField>
+
+<ParamField path="minimumCivs" type="integer" default="1">
+  Minimum number of civs needed to start the quest. Only meaningful for `type = Global`.
+</ParamField>
+
+<ParamField path="weightForCityStateType" type="object" default="none">
+  Weight multiplier for each city state type or personality (`Friendly`, `Neutral`, `Hostile`, `Irrational`). Initial weight is 1, multiplied by matching values. Example:
+
+  ```json
+  "weightForCityStateType": {
+      "Hostile": 2,
+      "Friendly": 0.2,
+      "Militaristic": 2
+  }
+  ```
+</ParamField>
+
+#### Predefined quest names
+
+| Name | Criteria |
+|------|----------|
+| Route | Connect the city state to the major civ's capital with roads or railways |
+| Clear Barbarian Camp | Destroy the target barbarian camp |
+| Construct Wonder | Construct the target wonder |
+| Connect Resource | Connect the target resource to the trade network |
+| Acquire Great Person | Acquire the target great person |
+| Conquer City State | Defeat the target city state |
+| Find Player | Meet the target major civilization |
+| Find Natural Wonder | Find the target natural wonder |
+| Give Gold | Donate gold to the city state |
+| Pledge to Protect | Pledge to protect the city state |
+| Contest Culture | Have the highest culture increase during the quest duration |
+| Contest Faith | Have the highest faith increase during the quest duration |
+| Contest Technology | Research the most technologies during the quest duration |
+| Invest | Donating gold yields extra influence — `[value]` in the description is the extra influence percent |
+| Bully City State | Demand tribute from the target city state |
+| Denounce Civilization | Denounce the civ that bullied the city state |
+| Spread Religion | Spread your religion to the city state |
+
+</Accordion>
+
+<Accordion title="Religions.json">
+
+A plain list of strings specifying all predefined religion names. Corresponding icons must exist. Religions are just containers for [beliefs](#beliefsjson).
+
+```json
+["Protestantism", "Catholicism", "Islam"]
+```
+
+</Accordion>
+
+<Accordion title="Specialists.json">
+
+Lists all specialist types that citizens can be assigned to in buildings.
+
+<ParamField path="name" type="string" required>
+  Name of the specialist.
+</ParamField>
+
+<ParamField path="<stats>" type="float" default="0">
+  Per-turn yield produced by this specialist. Use any valid stat name. See [Stats](/modders/file-structure/map-jsons#stats).
+</ParamField>
+
+<ParamField path="color" type="integer[3]" required>
+  RGB color of the specialist icon. Format: `[red, green, blue]`.
+</ParamField>
+
+<ParamField path="greatPersonPoints" type="object" default="none">
+  Great person points generated per turn. Keys are unit names (e.g. `"Great Scientist"`), values are integers.
+</ParamField>
+
+</Accordion>
+
+<Accordion title="Techs.json">
+
+Contains all technologies researchable with science. The file is organized as an outer list of **columns**, each containing one or more techs.
+
+### Column structure
+
+<ParamField path="columnNumber" type="integer" required>
+  Horizontal placement in the Tech Tree.
+</ParamField>
+
+<ParamField path="era" type="string" required>
+  Era reached after researching any technology in this column. Must exist in `Eras.json`.
+</ParamField>
+
+<ParamField path="techCost" type="integer" default="0">
+  Default science cost for techs in this column.
+</ParamField>
+
+<ParamField path="buildingCost" type="integer" required>
+  Default production cost for buildings that require a tech in this column.
+</ParamField>
+
+<ParamField path="wonderCost" type="integer" required>
+  Default production cost for wonders that require a tech in this column.
+</ParamField>
+
+<ParamField path="techs" type="object[]" required>
+  List of tech entries in this column. Pay attention to the nesting of `{}` and `[]`.
+</ParamField>
+
+### Tech structure
+
+<ParamField path="name" type="string" required>
+  Name of the technology.
+</ParamField>
+
+<ParamField path="row" type="integer" default="0">
+  Vertical placement in the Tech Tree. Must be unique within its column.
+</ParamField>
+
+<ParamField path="cost" type="integer" default="column techCost">
+  Science required to research this tech. Defaults to the column's `techCost`.
+</ParamField>
+
+<ParamField path="prerequisites" type="string[]" default="[]">
+  Names of techs that are direct prerequisites. Only direct prerequisites need to be listed.
+</ParamField>
+
+<ParamField path="quote" type="string" default="none">
+  Flavor text shown to the player when this tech is researched.
+</ParamField>
+
+<ParamField path="uniques" type="string[]" default="[]">
+  List of [unique abilities](../uniques) granted by this technology.
+</ParamField>
+
+<ParamField path="civilopediaText" type="object[]" default="[]">
+  Extra text shown in the Civilopedia. See the [Civilopedia text](/modders/file-structure/miscellaneous-jsons#civilopedia-text) section.
+</ParamField>
+
+</Accordion>
+
+</AccordionGroup>

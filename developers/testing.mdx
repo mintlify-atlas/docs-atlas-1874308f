@@ -1,0 +1,202 @@
+---
+title: "Testing"
+description: "Run unit tests, test Android builds, and understand the CI and deployment process for Unciv."
+---
+
+## Unit tests
+
+<Tabs>
+  <Tab title="Android Studio">
+    <Steps>
+      <Step title="Create a Gradle run configuration">
+        1. Go to **Run → Edit Configurations**.
+        2. Click **+** and choose **Gradle**.
+        3. Name the configuration, e.g. `Unit Tests`.
+        4. Under **Gradle Project**, choose `Unciv` from the dropdown (or type it).
+        5. Set **Tasks** to `:tests:test`.
+        6. Set **Arguments** to `--tests "com.unciv.*"`.
+        7. Click **OK**.
+      </Step>
+      <Step title="Run or debug the tests">
+        Select the **Unit Tests** configuration and click the green arrow to run, or the debug button to start a debug session against the tests.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Command line">
+    ```bash
+    ./gradlew tests:test
+    ```
+
+    Tests are also run automatically by CI on every push to the repository.
+  </Tab>
+</Tabs>
+
+## Linting with Detekt
+
+Detekt checks for code smells and other linting issues. See the [Building locally](/developers/building-locally#linting-with-detekt) page for the full setup instructions, including how to generate HTML reports for warnings and errors.
+
+## Testing Android builds
+
+A successful Gradle sync should automatically create an **android** run configuration. If it is missing, you can create it manually.
+
+### Creating the Android run configuration
+
+<Steps>
+  <Step title="Add an Android App configuration">
+    1. Ensure the Gradle sync has finished successfully.
+    2. Go to **Run → Edit Configurations**.
+    3. Click **+** and choose **Android App**.
+    4. Name it `Android`.
+    5. Set **Module** to `Unciv.android.main`.
+    6. On the **Miscellaneous** tab, enable both logcat options.
+    7. On the **Debugger** tab, enable **Automatically attach on Debug.waitForDebugger()**.
+    8. Leave all other settings as defaults.
+  </Step>
+</Steps>
+
+### Physical devices
+
+Debugging on physical devices is the easiest approach.
+
+With Android Studio running, `adb` is also running. Connect your device via USB. The first time, the device will ask you to confirm your desktop's fingerprint — accept it. Once authorized, the device appears in the device selector next to your **android** run configuration.
+
+<Note>
+  A debug session does not end when you select Exit from Unciv's menus. Swipe the app out of the recents list to fully end the debug session. Using the Stop button in Android Studio is less reliable.
+</Note>
+
+#### `adb` on Linux
+
+For USB debugging on Linux, you may need to configure permissions. The exact steps depend on your distribution. For Mint 22.1 (mappable to other distros):
+
+<Steps>
+  <Step title="Verify group membership">
+    ```bash
+    groups
+    ```
+    Ensure you are a member of the `plugdev` group. If not, add yourself:
+    ```bash
+    sudo usermod -a -G plugdev $USER
+    ```
+  </Step>
+  <Step title="Find your device's vendor ID">
+    Connect the device via USB and run:
+    ```bash
+    lsusb
+    ```
+    Note the first 4-digit hex code after "ID" for your device (commonly `18d1` for LineageOS devices).
+  </Step>
+  <Step title="Add a udev rule">
+    Check `/etc/udev/rules.d/` for an existing `51-android.rules` file. Edit or create it:
+    ```bash
+    sudo xed /etc/udev/rules.d/51-android.rules
+    ```
+    Add the following line (replace `18d1` with your vendor ID if different):
+    ```
+    SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0666", GROUP="plugdev"
+    ```
+  </Step>
+  <Step title="Reload udev rules">
+    ```bash
+    sudo udevadm control --reload-rules && sudo udevadm trigger
+    ```
+    Then test:
+    ```bash
+    adb kill-server && adb devices
+    ```
+    Your device should appear in the list. Re-authorize your computer from the device if prompted.
+  </Step>
+</Steps>
+
+### Building an APK
+
+**From Android Studio:** use **Build → Build Bundle(s) / APK(s) → Build APK(s)**. When the build finishes, Android Studio offers to open the file in your file manager.
+
+**From the command line:**
+
+```bash
+./gradlew android:assembleDebug
+```
+
+The APK will be at `android/build/outputs/apk/debug/`.
+
+<Warning>
+  APKs built locally are debug-signed and are **not interchangeable** with Unciv downloaded from stores (Google Play, F-Droid). You cannot update one with the other without uninstalling first — which will erase all local data.
+</Warning>
+
+### Log output on Android
+
+Unciv's log system runs on top of the Android SDK logging system. Logging is always enabled for debug builds (all builds from Studio or the command line). Store releases have logging disabled by default.
+
+To override logging in a run configuration, add the following to **Launch Flags** on the **General** tab:
+
+```
+--ez debugLogging false
+```
+
+You can also control this without Studio using `adb`:
+
+```bash
+adb shell am start com.unciv.app/com.unciv.app.AndroidLauncher --ez debugLogging true
+```
+
+To filter logcat output to only Unciv's own logging:
+
+```
+package:com.unciv.app tag:Unciv
+```
+
+## CI and deployment
+
+### Getting code into the main repository
+
+<Steps>
+  <Step title="Push your branch">
+    Push your changes to your fork at `https://github.com/YourUsername/Unciv.git`.
+  </Step>
+  <Step title="Open a pull request">
+    Open a pull request from your fork on GitHub. The GitHub Actions build will verify that your change builds and passes all tests.
+  </Step>
+  <Step title="Code review">
+    The maintainer will review the pull request, ask questions, and request changes — both for code quality and to help you understand how the repo works for future contributions.
+  </Step>
+  <Step title="Merge">
+    When everything looks good, your code is merged and enters the next release.
+  </Step>
+</Steps>
+
+### Release process (maintainer)
+
+When a new version is ready, the maintainer:
+
+1. Comments `prepare version` on a PR tagged as `mergeable translation` to trigger the translation branch creation. This also bumps versions in `buildConfig.kt` and generates a starting entry in `changelog.md`.
+2. Merges the PR and deletes the branch.
+3. Runs translation generation locally and edits the changelog entry to be under 500 characters (required by Google Play) and readable.
+4. Adds a Git tag to the version commit.
+
+When the [GitHub Actions workflow](https://github.com/yairm210/Unciv/actions/workflows/buildAndDeploy.yml) detects the new tag, it automatically:
+
+- Packs a universal `.jar` file (works on any OS with Java).
+- Builds standalone zips for 32-bit and 64-bit Linux and Windows (for users without a JRE).
+- Pushes all builds to the [itch.io page](https://yairm210.itch.io/unciv) via Butler.
+- Uploads everything to a new GitHub release with notes from `changelog.md`.
+- Sends a Discord announcement via webhook.
+- Packs, signs, and uploads a new APK to Google Play Console at 10% rollout.
+
+F-Droid checks for new tags periodically and builds its own release when it detects one.
+
+### Google Play rollout
+
+| Day | Rollout percentage |
+|---|---|
+| Day 0 | 10% |
+| Day 1 (no major issues) | 30% |
+| Day 2 | 100% |
+
+If problems are found, the current rollout is halted, a fix is made, and a patch release starts at 10% again.
+
+### Patch releases
+
+Any Collaborator can trigger an urgent patch release for a game-breaking bug:
+
+1. In the fixing PR, add a comment with the body `release patch` instead of merging normally.
+2. Wait for the UncivBot workflow to process it (under a minute — watch the **Actions** tab).
